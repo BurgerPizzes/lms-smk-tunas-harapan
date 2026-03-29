@@ -23,7 +23,7 @@ class Announcement extends Model
     ];
 
     protected $casts = [
-        'priority' => 'integer',
+        'priority' => 'string',
         'is_published' => 'boolean',
         'published_at' => 'datetime',
     ];
@@ -55,7 +55,7 @@ class Announcement extends Model
 
     public function scopeHighPriority($query)
     {
-        return $query->where('priority', '>=', 3);
+        return $query->where('priority', 'high');
     }
 
     public function scopeByClass($query, int $classId)
@@ -68,10 +68,9 @@ class Announcement extends Model
     public function getPriorityLabel(): string
     {
         return match ($this->priority) {
-            1 => 'Rendah',
-            2 => 'Normal',
-            3 => 'Tinggi',
-            4 => 'Sangat Tinggi',
+            'low' => 'Rendah',
+            'medium' => 'Normal',
+            'high' => 'Tinggi',
             default => 'Normal',
         };
     }
@@ -79,10 +78,9 @@ class Announcement extends Model
     public function getPriorityColor(): string
     {
         return match ($this->priority) {
-            1 => 'gray',
-            2 => 'blue',
-            3 => 'orange',
-            4 => 'red',
+            'low' => 'gray',
+            'medium' => 'blue',
+            'high' => 'red',
             default => 'blue',
         };
     }
