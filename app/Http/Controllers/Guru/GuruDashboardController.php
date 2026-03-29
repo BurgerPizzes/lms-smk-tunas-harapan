@@ -71,7 +71,7 @@ class GuruDashboardController extends Controller
             ->first();
 
         // Total materi created
-        $totalMateri = Materi::where('user_id', $guru->id)->count();
+        $totalMateri = Materi::where('guru_id', $guru->id)->count();
 
         // Total tugas created
         $totalTugas = Tugas::whereIn('kelas_id', $kelasIds)

@@ -75,7 +75,7 @@ class ApiTugasController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'guru') {
+        if ($user->hasRole('guru')) {
             return response()->json(['message' => 'Hanya guru yang dapat membuat tugas.'], 403);
         }
 

@@ -32,7 +32,7 @@ class SiswaTugasController extends Controller
         if ($request->filled('status')) {
             $status = $request->input('status');
             $query->whereHas('submissions', function ($q) use ($siswa, $status) {
-                $q->where('user_id', $siswa->id);
+                $q->where('siswa_id', $siswa->id);
                 if ($status === 'submitted') {
                     $q->whereNotNull('file_path')
                       ->orWhereNotNull('jawaban');
@@ -51,7 +51,7 @@ class SiswaTugasController extends Controller
         // Annotate with submission status
         $tugasList->transform(function ($tugas) use ($siswa) {
             $submission = Submission::where('tugas_id', $tugas->id)
-                ->where('user_id', $siswa->id)
+                ->where('siswa_id', $siswa->id)
                 ->first();
 
             $tugas->submission = $submission;
@@ -81,7 +81,7 @@ class SiswaTugasController extends Controller
         $tugas->load(['kelas', 'mapel', 'user']);
 
         $submission = Submission::where('tugas_id', $tugas->id)
-            ->where('user_id', $siswa->id)
+            ->where('siswa_id', $siswa->id)
             ->first();
 
         $is_expired = $tugas->deadline && $tugas->deadline < now();
@@ -114,7 +114,7 @@ class SiswaTugasController extends Controller
 
         $submissionData = [
             'tugas_id' => $tugas->id,
-            'user_id'  => $siswa->id,
+            'siswa_id' => $siswa->id,
             'jawaban'  => $validated['jawaban'] ?? null,
             'submitted_at' => now(),
         ];
@@ -131,7 +131,7 @@ class SiswaTugasController extends Controller
 
         // Update existing or create new submission
         $existingSubmission = Submission::where('tugas_id', $tugas->id)
-            ->where('user_id', $siswa->id)
+            ->where('siswa_id', $siswa->id)
             ->first();
 
         if ($existingSubmission) {
@@ -157,7 +157,7 @@ class SiswaTugasController extends Controller
     {
         $siswa = Auth::user();
 
-        $submissions = Submission::where('user_id', $siswa->id)
+        $submissions = Submission::where('siswa_id', $siswa->id)
             ->with(['tugas.kelas', 'tugas.mapel'])
             ->latest('submitted_at')
             ->paginate(15);

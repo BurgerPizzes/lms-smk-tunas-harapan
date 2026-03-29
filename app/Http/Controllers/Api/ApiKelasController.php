@@ -18,9 +18,9 @@ class ApiKelasController extends Controller
         $user = $request->user();
         $query = Kelas::query()->with(['jurusan', 'waliKelas']);
 
-        if ($user->role === 'siswa') {
+        if ($user->hasRole('siswa')) {
             $query->whereHas('siswa', fn ($q) => $q->where('users.id', $user->id));
-        } elseif ($user->role === 'guru') {
+        } elseif ($user->hasRole('guru')) {
             $query->whereHas('guruMapel', fn ($q) => $q->where('guru_id', $user->id))
                   ->orWhere('wali_kelas_id', $user->id);
         }
@@ -46,7 +46,7 @@ class ApiKelasController extends Controller
         $user = $request->user();
 
         // Verify access
-        if ($user->role === 'siswa') {
+        if ($user->hasRole('siswa')) {
             if (! $kelas->siswa()->where('users.id', $user->id)->exists()) {
                 return response()->json(['message' => 'Anda tidak terdaftar di kelas ini.'], 403);
             }
@@ -72,7 +72,7 @@ class ApiKelasController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'guru') {
+        if ($user->hasRole('guru')) {
             return response()->json(['message' => 'Hanya guru yang dapat membuat kelas.'], 403);
         }
 
@@ -104,7 +104,7 @@ class ApiKelasController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'siswa') {
+        if ($user->hasRole('siswa')) {
             return response()->json(['message' => 'Hanya siswa yang dapat bergabung ke kelas.'], 403);
         }
 

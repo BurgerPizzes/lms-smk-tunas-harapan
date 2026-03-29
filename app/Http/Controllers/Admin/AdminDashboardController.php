@@ -19,8 +19,8 @@ class AdminDashboardController extends Controller
     {
         // Total counts
         $totalUsers    = User::count();
-        $totalGuru     = User::where('role', 'guru')->count();
-        $totalSiswa    = User::where('role', 'siswa')->count();
+        $totalGuru     = User::role('guru')->count();
+        $totalSiswa    = User::role('siswa')->count();
         $totalKelas    = Kelas::count();
         $totalMateri   = Materi::count();
         $totalTugas    = Tugas::count();
@@ -31,22 +31,26 @@ class AdminDashboardController extends Controller
             ->take(10)
             ->get();
 
-        // Attendance summary for the current week
+        // Attendance summary for the current week (join with details to get status)
         $attendanceSummary = DB::table('attendances')
+            ->join('attendance_details', 'attendances.id', '=', 'attendance_details.attendance_id')
+            ->where('attendances.created_at', '>=', now()->startOfWeek())
             ->selectRaw('
                 COUNT(*) as total_records,
-                SUM(CASE WHEN status = "hadir" THEN 1 ELSE 0 END) as hadir,
-                SUM(CASE WHEN status = "izin" THEN 1 ELSE 0 END) as izin,
-                SUM(CASE WHEN status = "sakit" THEN 1 ELSE 0 END) as sakit,
-                SUM(CASE WHEN status = "alpha" THEN 1 ELSE 0 END) as alpha
+                SUM(CASE WHEN attendance_details.status = "hadir" THEN 1 ELSE 0 END) as hadir,
+                SUM(CASE WHEN attendance_details.status = "izin" THEN 1 ELSE 0 END) as izin,
+                SUM(CASE WHEN attendance_details.status = "sakit" THEN 1 ELSE 0 END) as sakit,
+                SUM(CASE WHEN attendance_details.status = "alpha" THEN 1 ELSE 0 END) as alpha
             ')
-            ->where('created_at', '>=', now()->startOfWeek())
             ->first();
 
-        // Top performing students (highest average scores)
+        // Top performing students (highest average scores) — uses Spatie role check via join
         $topStudents = DB::table('submissions')
-            ->join('users', 'submissions.user_id', '=', 'users.id')
-            ->where('users.role', 'siswa')
+            ->join('users', 'submissions.siswa_id', '=', 'users.id')
+            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->where('model_has_roles.model_type', User::class)
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->where('roles.name', 'siswa')
             ->whereNotNull('submissions.nilai')
             ->select('users.id', 'users.name', 'users.email', DB::raw('AVG(submissions.nilai) as average_nilai'))
             ->groupBy('users.id', 'users.name', 'users.email')
@@ -54,14 +58,19 @@ class AdminDashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Monthly registration trend (last 6 months)
+        // Monthly registration trend (last 6 months) — uses Spatie roles table
         $registrationTrend = User::selectRaw("
-                DATE_FORMAT(created_at, '%Y-%m') as month,
+                DATE_FORMAT(users.created_at, '%Y-%m') as month,
                 COUNT(*) as count,
-                SUM(CASE WHEN role = 'guru' THEN 1 ELSE 0 END) as guru_count,
-                SUM(CASE WHEN role = 'siswa' THEN 1 ELSE 0 END) as siswa_count
+                SUM(CASE WHEN roles.name = 'guru' THEN 1 ELSE 0 END) as guru_count,
+                SUM(CASE WHEN roles.name = 'siswa' THEN 1 ELSE 0 END) as siswa_count
             ")
-            ->where('created_at', '>=', now()->subMonths(6))
+            ->leftJoin('model_has_roles', function ($join) {
+                $join->on('users.id', '=', 'model_has_roles.model_id')
+                     ->where('model_has_roles.model_type', User::class);
+            })
+            ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->where('users.created_at', '>=', now()->subMonths(6))
             ->groupBy('month')
             ->orderBy('month')
             ->get();

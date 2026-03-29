@@ -189,7 +189,7 @@ class GuruAbsensiController extends Controller
             $attendanceDetails = AttendanceDetail::whereHas('attendance', function ($query) use ($kelas) {
                 $query->where('kelas_id', $kelas->id);
             })
-            ->where('user_id', $s->id)
+            ->where('siswa_id', $s->id)
             ->get();
 
             $totalSessions = $attendanceDetails->count();
@@ -234,7 +234,7 @@ class GuruAbsensiController extends Controller
                 $details = AttendanceDetail::whereHas('attendance', function ($query) use ($kelas) {
                     $query->where('kelas_id', $kelas->id);
                 })
-                ->where('user_id', $s->id)
+                ->where('siswa_id', $s->id)
                 ->get();
 
                 $total = $details->count();

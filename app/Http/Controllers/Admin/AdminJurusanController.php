@@ -17,7 +17,7 @@ class AdminJurusanController extends Controller
             ->orderBy('nama')
             ->paginate(15);
 
-        return view('admin.jurusans.index', compact('jurusans'));
+        return view('admin.jurusan.index', compact('jurusans'));
     }
 
     /**
@@ -40,12 +40,12 @@ class AdminJurusanController extends Controller
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
-        $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['aktif'] = $request->boolean('is_active', true);
 
         Jurusan::create($validated);
 
         return redirect()
-            ->route('admin.jurusans.index')
+            ->route('admin.jurusan.index')
             ->with('success', 'Jurusan berhasil ditambahkan.');
     }
 
@@ -54,9 +54,9 @@ class AdminJurusanController extends Controller
      */
     public function show(Jurusan $jurusan): \Illuminate\View\View
     {
-        $jurusan->load(['kelas.siswa', 'kelas.waliKelas', 'guru']);
+        $jurusan->load(['kelas.siswas', 'kelas.waliKelas', 'users']);
 
-        return view('admin.jurusans.show', compact('jurusan'));
+        return view('admin.jurusan.show', compact('jurusan'));
     }
 
     /**
@@ -79,12 +79,12 @@ class AdminJurusanController extends Controller
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
-        $validated['is_active'] = $request->boolean('is_active', $jurusan->is_active);
+        $validated['aktif'] = $request->boolean('is_active', $jurusan->aktif);
 
         $jurusan->update($validated);
 
         return redirect()
-            ->route('admin.jurusans.index')
+            ->route('admin.jurusan.index')
             ->with('success', 'Jurusan berhasil diperbarui.');
     }
 
@@ -100,7 +100,7 @@ class AdminJurusanController extends Controller
         $jurusan->delete();
 
         return redirect()
-            ->route('admin.jurusans.index')
+            ->route('admin.jurusan.index')
             ->with('success', 'Jurusan berhasil dihapus.');
     }
 
@@ -110,13 +110,13 @@ class AdminJurusanController extends Controller
     public function toggleStatus(Jurusan $jurusan): \Illuminate\Http\RedirectResponse
     {
         $jurusan->update([
-            'is_active' => ! $jurusan->is_active,
+            'aktif' => ! $jurusan->aktif,
         ]);
 
-        $status = $jurusan->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        $status = $jurusan->aktif ? 'diaktifkan' : 'dinonaktifkan';
 
         return redirect()
-            ->route('admin.jurusans.index')
+            ->route('admin.jurusan.index')
             ->with('success', "Jurusan berhasil {$status}.");
     }
 }

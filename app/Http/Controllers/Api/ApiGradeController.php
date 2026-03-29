@@ -27,8 +27,8 @@ class ApiGradeController extends Controller
         ->whereNotNull('nilai')
         ->with(['user', 'tugas']);
 
-        if ($user->role === 'siswa') {
-            $query->where('user_id', $user->id);
+        if ($user->hasRole('siswa')) {
+            $query->where('siswa_id', $user->id);
         }
 
         $submissions = $query->orderBy('graded_at', 'desc')->paginate(20);
@@ -62,7 +62,7 @@ class ApiGradeController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'guru') {
+        if ($user->hasRole('guru')) {
             return response()->json(['message' => 'Hanya guru yang dapat memberi nilai.'], 403);
         }
 
@@ -99,7 +99,7 @@ class ApiGradeController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'guru') {
+        if ($user->hasRole('guru')) {
             return response()->json(['message' => 'Hanya guru yang dapat mengekspor nilai.'], 403);
         }
 

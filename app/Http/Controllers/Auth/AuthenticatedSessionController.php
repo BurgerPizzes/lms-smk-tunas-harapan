@@ -55,12 +55,15 @@ class AuthenticatedSessionController extends Controller
         ]);
 
         // Redirect based on role
-        return match ($user->role) {
-            'admin' => redirect()->intended(route('admin.dashboard')),
-            'guru'  => redirect()->intended(route('guru.dashboard')),
-            'siswa' => redirect()->intended(route('siswa.dashboard')),
-            default => redirect()->intended(route('dashboard')),
-        };
+        if ($user->hasRole('admin')) {
+            return redirect()->intended(route('admin.dashboard'));
+        } elseif ($user->hasRole('guru')) {
+            return redirect()->intended(route('guru.dashboard'));
+        } elseif ($user->hasRole('siswa')) {
+            return redirect()->intended(route('siswa.dashboard'));
+        }
+
+        return redirect()->intended(route('dashboard'));
     }
 
     /**

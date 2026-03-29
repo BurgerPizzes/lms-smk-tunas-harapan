@@ -66,7 +66,7 @@ class ApiMateriController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'guru') {
+        if ($user->hasRole('guru')) {
             return response()->json(['message' => 'Hanya guru yang dapat membuat materi.'], 403);
         }
 
@@ -110,7 +110,7 @@ class ApiMateriController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'guru' || $materi->user_id !== $user->id) {
+        if ($user->hasRole('guru') || $materi->guru_id !== $user->id) {
             return response()->json(['message' => 'Anda tidak memiliki izin.'], 403);
         }
 
@@ -151,7 +151,7 @@ class ApiMateriController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'guru' || $materi->user_id !== $user->id) {
+        if ($user->hasRole('guru') || $materi->guru_id !== $user->id) {
             return response()->json(['message' => 'Anda tidak memiliki izin.'], 403);
         }
 

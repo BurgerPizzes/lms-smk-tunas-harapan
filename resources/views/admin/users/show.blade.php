@@ -22,8 +22,8 @@
             <div class="flex flex-wrap items-center gap-2 mb-1">
                 <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ $user->name }}</h2>
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                    {{ $user->role === 'admin' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : ($user->role === 'guru' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400') }}">
-                    {{ ucfirst($user->role) }}
+                    {{ $user->hasRole('admin') ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : ($user->hasRole('guru') ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400') }}">
+                    {{ ucfirst($user->getRoleNames()->first() ?? '-') }}
                 </span>
                 @if($user->is_active)
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
@@ -105,10 +105,10 @@
         </h3>
         <dl class="space-y-3">
             <div class="flex justify-between items-start py-2 border-b border-gray-100 dark:border-gray-700">
-                <dt class="text-sm text-gray-500 dark:text-gray-400">{{ $user->role === 'guru' ? 'NIP' : 'NIS' }}</dt>
+                <dt class="text-sm text-gray-500 dark:text-gray-400">{{ $user->hasRole('guru') ? 'NIP' : 'NIS' }}</dt>
                 <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $user->nip ?? ($user->nis ?? '-') }}</dd>
             </div>
-            @if($user->role === 'siswa')
+            @if($user->hasRole('siswa'))
             <div class="flex justify-between items-start py-2 border-b border-gray-100 dark:border-gray-700">
                 <dt class="text-sm text-gray-500 dark:text-gray-400">NISN</dt>
                 <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $user->nisn ?? '-' }}</dd>
@@ -131,7 +131,7 @@
 </div>
 
 <!-- Related Data -->
-@if($user->role === 'siswa' && isset($enrolledClasses))
+@if($user->hasRole('siswa') && isset($enrolledClasses))
 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-6">
     <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Kelas yang Diikuti</h3>
     <div class="overflow-x-auto">
@@ -163,7 +163,7 @@
 </div>
 @endif
 
-@if($user->role === 'guru' && isset($teachingSubjects))
+@if($user->hasRole('guru') && isset($teachingSubjects))
 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-6">
     <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Mata Pelajaran yang Diampu</h3>
     <div class="overflow-x-auto">

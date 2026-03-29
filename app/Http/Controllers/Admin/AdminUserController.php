@@ -9,7 +9,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class AdminUserController extends Controller
 {
@@ -26,13 +25,14 @@ class AdminUserController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('nis_nip', 'like', "%{$search}%");
+                  ->orWhere('nis', 'like', "%{$search}%")
+                  ->orWhere('nip', 'like', "%{$search}%");
             });
         }
 
-        // Filter by role
+        // Filter by role (Spatie)
         if ($request->filled('role')) {
-            $query->where('role', $request->input('role'));
+            $query->role($request->input('role'));
         }
 
         // Filter by jurusan
@@ -51,12 +51,12 @@ class AdminUserController extends Controller
             $query->where('is_active', $is_active);
         }
 
-        $users = $query->with(['jurusan', 'kelas'])
+        $users = $query->with(['jurusan', 'kelas', 'roles'])
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
 
-        $jurusans = Jurusan::where('is_active', true)->orderBy('nama')->get();
+        $jurusans = Jurusan::where('aktif', true)->orderBy('nama')->get();
         $kelasList = Kelas::where('is_active', true)->orderBy('nama')->get();
 
         return view('admin.users.index', compact('users', 'jurusans', 'kelasList'));
@@ -67,7 +67,7 @@ class AdminUserController extends Controller
      */
     public function create(): \Illuminate\View\View
     {
-        $jurusans = Jurusan::where('is_active', true)->orderBy('nama')->get();
+        $jurusans = Jurusan::where('aktif', true)->orderBy('nama')->get();
         $kelasList = Kelas::where('is_active', true)->orderBy('nama')->get();
 
         return view('admin.users.create', compact('jurusans', 'kelasList'));
@@ -83,7 +83,9 @@ class AdminUserController extends Controller
             'email'     => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password'  => ['required', 'string', 'min:8', 'confirmed'],
             'role'      => ['required', 'string', 'in:admin,guru,siswa'],
-            'nis_nip'   => ['nullable', 'string', 'max:50', 'unique:users,nis_nip'],
+            'nip'       => ['nullable', 'string', 'max:50', 'unique:users,nip'],
+            'nis'       => ['nullable', 'string', 'max:50', 'unique:users,nis'],
+            'nisn'      => ['nullable', 'string', 'max:50', 'unique:users,nisn'],
             'no_hp'     => ['nullable', 'string', 'max:20'],
             'jurusan_id' => ['nullable', 'exists:jurusans,id'],
             'kelas_id'  => ['nullable', 'exists:kelas,id'],
@@ -93,7 +95,11 @@ class AdminUserController extends Controller
         $validated['password'] = Hash::make($validated['password']);
         $validated['is_active'] = $request->boolean('is_active', true);
 
-        User::create($validated);
+        $role = $validated['role'];
+        unset($validated['role']);
+
+        $user = User::create($validated);
+        $user->assignRole($role);
 
         return redirect()
             ->route('admin.users.index')
@@ -105,7 +111,7 @@ class AdminUserController extends Controller
      */
     public function show(User $user): \Illuminate\View\View
     {
-        $user->load(['jurusan', 'kelas', 'submissions', 'activityLogs']);
+        $user->load(['jurusan', 'kelas', 'roles']);
 
         return view('admin.users.show', compact('user'));
     }
@@ -115,7 +121,8 @@ class AdminUserController extends Controller
      */
     public function edit(User $user): \Illuminate\View\View
     {
-        $jurusans = Jurusan::where('is_active', true)->orderBy('nama')->get();
+        $user->load('roles');
+        $jurusans = Jurusan::where('aktif', true)->orderBy('nama')->get();
         $kelasList = Kelas::where('is_active', true)->orderBy('nama')->get();
 
         return view('admin.users.edit', compact('user', 'jurusans', 'kelasList'));
@@ -131,7 +138,9 @@ class AdminUserController extends Controller
             'email'     => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'password'  => ['nullable', 'string', 'min:8', 'confirmed'],
             'role'      => ['required', 'string', 'in:admin,guru,siswa'],
-            'nis_nip'   => ['nullable', 'string', 'max:50', 'unique:users,nis_nip,' . $user->id],
+            'nip'       => ['nullable', 'string', 'max:50', 'unique:users,nip,' . $user->id],
+            'nis'       => ['nullable', 'string', 'max:50', 'unique:users,nis,' . $user->id],
+            'nisn'      => ['nullable', 'string', 'max:50', 'unique:users,nisn,' . $user->id],
             'no_hp'     => ['nullable', 'string', 'max:20'],
             'jurusan_id' => ['nullable', 'exists:jurusans,id'],
             'kelas_id'  => ['nullable', 'exists:kelas,id'],
@@ -146,7 +155,11 @@ class AdminUserController extends Controller
 
         $validated['is_active'] = $request->boolean('is_active', $user->is_active);
 
+        $role = $validated['role'];
+        unset($validated['role']);
+
         $user->update($validated);
+        $user->syncRoles([$role]);
 
         return redirect()
             ->route('admin.users.index')
@@ -195,7 +208,7 @@ class AdminUserController extends Controller
      */
     public function export(): \Symfony\Component\HttpFoundation\StreamedResponse
     {
-        $users = User::with(['jurusan', 'kelas'])
+        $users = User::with(['jurusan', 'kelas', 'roles'])
             ->orderBy('name')
             ->get();
 
@@ -216,8 +229,8 @@ class AdminUserController extends Controller
                     $user->id,
                     $user->name,
                     $user->email,
-                    $user->nis_nip,
-                    ucfirst($user->role),
+                    $user->nip ?? $user->nis ?? '-',
+                    ucfirst($user->getRoleNames()->first() ?? '-'),
                     $user->jurusan?->nama ?? '-',
                     $user->kelas?->nama ?? '-',
                     $user->no_hp ?? '-',

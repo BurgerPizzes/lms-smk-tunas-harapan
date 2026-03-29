@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\GuruMapel;
+use App\Models\ClassGuruMapel;
 use App\Models\Kelas;
 use App\Models\Mapel;
 use App\Models\TahunAjaran;
@@ -17,7 +17,7 @@ class AdminGuruMapelController extends Controller
      */
     public function index(Request $request): \Illuminate\View\View
     {
-        $query = GuruMapel::with(['guru', 'mapel', 'kelas', 'tahunAjaran']);
+        $query = ClassGuruMapel::with(['guru', 'mapel', 'kelas', 'tahunAjaran']);
 
         if ($request->filled('guru_id')) {
             $query->where('guru_id', $request->input('guru_id'));
@@ -38,7 +38,7 @@ class AdminGuruMapelController extends Controller
         $assignments = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
         // Data for filters
-        $gurus = User::where('role', 'guru')->where('is_active', true)->orderBy('name')->get();
+        $gurus = User::role('guru')->where('is_active', true)->orderBy('name')->get();
         $mapels = Mapel::where('is_active', true)->orderBy('nama')->get();
         $kelasList = Kelas::where('is_active', true)->orderBy('nama')->get();
         $tahunAjarans = TahunAjaran::orderBy('tahun_mulai', 'desc')->get();
@@ -53,13 +53,13 @@ class AdminGuruMapelController extends Controller
      */
     public function create(): \Illuminate\View\View
     {
-        $gurus = User::where('role', 'guru')->where('is_active', true)->orderBy('name')->get();
+        $gurus = User::role('guru')->where('is_active', true)->orderBy('name')->get();
         $mapels = Mapel::where('is_active', true)->orderBy('nama')->get();
         $kelasList = Kelas::where('is_active', true)->orderBy('nama')->get();
         $tahunAjarans = TahunAjaran::orderBy('tahun_mulai', 'desc')->get();
 
         // Get active tahun ajaran
-        $activeTahunAjaran = TahunAjaran::where('is_active', true)->first();
+        $activeTahunAjaran = TahunAjaran::where('aktif', true)->first();
 
         return view('admin.guru-mapel.create', compact(
             'gurus', 'mapels', 'kelasList', 'tahunAjarans', 'activeTahunAjaran'
@@ -79,7 +79,7 @@ class AdminGuruMapelController extends Controller
         ]);
 
         // Check for duplicate assignment
-        $exists = GuruMapel::where($validated)->exists();
+        $exists = ClassGuruMapel::where($validated)->exists();
 
         if ($exists) {
             return back()
@@ -87,7 +87,7 @@ class AdminGuruMapelController extends Controller
                 ->withInput();
         }
 
-        GuruMapel::create($validated);
+        ClassGuruMapel::create($validated);
 
         return redirect()
             ->route('admin.guru-mapel.index')
@@ -97,9 +97,9 @@ class AdminGuruMapelController extends Controller
     /**
      * Remove the specified assignment from storage.
      */
-    public function destroy(GuruMapel $guruMapel): \Illuminate\Http\RedirectResponse
+    public function destroy(ClassGuruMapel $classGuruMapel): \Illuminate\Http\RedirectResponse
     {
-        $guruMapel->delete();
+        $classGuruMapel->delete();
 
         return redirect()
             ->route('admin.guru-mapel.index')

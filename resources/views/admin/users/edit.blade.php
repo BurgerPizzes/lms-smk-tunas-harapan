@@ -70,25 +70,25 @@
                     <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Role <span class="text-red-500">*</span></label>
                     <select id="role" name="role" required onchange="handleRoleChange()" class="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors">
                         <option value="">Pilih Role</option>
-                        <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Admin</option>
-                        <option value="guru" {{ old('role', $user->role) === 'guru' ? 'selected' : '' }}>Guru</option>
-                        <option value="siswa" {{ old('role', $user->role) === 'siswa' ? 'selected' : '' }}>Siswa</option>
+                        <option value="admin" {{ old('role', $user->getRoleNames()->first()) === 'admin' ? 'selected' : '' }}>Admin</option>
+                        <option value="guru" {{ old('role', $user->getRoleNames()->first()) === 'guru' ? 'selected' : '' }}>Guru</option>
+                        <option value="siswa" {{ old('role', $user->getRoleNames()->first()) === 'siswa' ? 'selected' : '' }}>Siswa</option>
                     </select>
                     @error('role') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
 
-                <div id="nip-field" class="{{ old('role', $user->role) === 'guru' ? '' : 'hidden' }}">
+                <div id="nip-field" class="{{ old('role', $user->getRoleNames()->first()) === 'guru' ? '' : 'hidden' }}">
                     <label for="nip" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">NIP</label>
                     <input type="text" id="nip" name="nip" value="{{ old('nip', $user->nip) }}" class="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors">
                     @error('nip') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
 
-                <div id="nis-field" class="{{ old('role', $user->role) === 'siswa' ? '' : 'hidden' }}">
+                <div id="nis-field" class="{{ old('role', $user->getRoleNames()->first()) === 'siswa' ? '' : 'hidden' }}">
                     <label for="nis" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">NIS</label>
                     <input type="text" id="nis" name="nis" value="{{ old('nis', $user->nis) }}" class="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors">
                     @error('nis') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
-                <div id="nisn-field" class="{{ old('role', $user->role) === 'siswa' ? '' : 'hidden' }}">
+                <div id="nisn-field" class="{{ old('role', $user->getRoleNames()->first()) === 'siswa' ? '' : 'hidden' }}">
                     <label for="nisn" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">NISN</label>
                     <input type="text" id="nisn" name="nisn" value="{{ old('nisn', $user->nisn) }}" class="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors">
                     @error('nisn') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror

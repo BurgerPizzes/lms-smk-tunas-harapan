@@ -105,7 +105,7 @@ class SiswaKelasController extends Controller
             ->get()
             ->map(function ($item) use ($siswa) {
                 $submission = \App\Models\Submission::where('tugas_id', $item->id)
-                    ->where('user_id', $siswa->id)
+                    ->where('siswa_id', $siswa->id)
                     ->first();
 
                 return [

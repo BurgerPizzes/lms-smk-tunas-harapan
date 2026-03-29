@@ -23,7 +23,7 @@ class SiswaAbsensiController extends Controller
             $details = AttendanceDetail::whereHas('attendance', function ($query) use ($kelas) {
                 $query->where('kelas_id', $kelas->id);
             })
-            ->where('user_id', $siswa->id)
+            ->where('siswa_id', $siswa->id)
             ->get();
 
             $total = $details->count();
@@ -42,7 +42,7 @@ class SiswaAbsensiController extends Controller
         });
 
         // Overall summary
-        $overallDetails = AttendanceDetail::where('user_id', $siswa->id)->get();
+        $overallDetails = AttendanceDetail::where('siswa_id', $siswa->id)->get();
         $overallTotal = $overallDetails->count();
         $overallData = [
             'total'      => $overallTotal,
@@ -75,7 +75,7 @@ class SiswaAbsensiController extends Controller
         // Annotate with student's status for each attendance session
         $attendances->transform(function ($attendance) use ($siswa) {
             $detail = AttendanceDetail::where('attendance_id', $attendance->id)
-                ->where('user_id', $siswa->id)
+                ->where('siswa_id', $siswa->id)
                 ->first();
 
             $attendance->student_status = $detail?->status ?? '-';
@@ -88,7 +88,7 @@ class SiswaAbsensiController extends Controller
         $details = AttendanceDetail::whereHas('attendance', function ($query) use ($kelas) {
             $query->where('kelas_id', $kelas->id);
         })
-        ->where('user_id', $siswa->id)
+        ->where('siswa_id', $siswa->id)
         ->get();
 
         $total = $details->count();

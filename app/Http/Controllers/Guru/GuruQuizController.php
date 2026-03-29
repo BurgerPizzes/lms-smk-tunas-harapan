@@ -118,7 +118,7 @@ class GuruQuizController extends Controller
         $attemptStats = QuizAttempt::where('quiz_id', $quiz->id)
             ->selectRaw('
                 COUNT(*) as total_attempts,
-                COUNT(DISTINCT user_id) as unique_students,
+                COUNT(DISTINCT siswa_id) as unique_students,
                 AVG(nilai) as average_score,
                 MAX(nilai) as highest_score,
                 MIN(nilai) as lowest_score
@@ -240,7 +240,7 @@ class GuruQuizController extends Controller
 
         $statistics = [
             'total_attempts'   => QuizAttempt::where('quiz_id', $quiz->id)->count(),
-            'unique_students'  => QuizAttempt::where('quiz_id', $quiz->id)->distinct('user_id')->count('user_id'),
+            'unique_students'  => QuizAttempt::where('quiz_id', $quiz->id)->distinct('siswa_id')->count('siswa_id'),
             'average_score'    => QuizAttempt::where('quiz_id', $quiz->id)->whereNotNull('nilai')->avg('nilai'),
             'highest_score'    => QuizAttempt::where('quiz_id', $quiz->id)->max('nilai'),
             'lowest_score'     => QuizAttempt::where('quiz_id', $quiz->id)->min('nilai'),

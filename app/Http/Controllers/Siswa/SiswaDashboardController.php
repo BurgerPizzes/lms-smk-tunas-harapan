@@ -37,7 +37,7 @@ class SiswaDashboardController extends Controller
             ->get()
             ->map(function ($tugas) use ($siswa) {
                 $submission = Submission::where('tugas_id', $tugas->id)
-                    ->where('user_id', $siswa->id)
+                    ->where('siswa_id', $siswa->id)
                     ->first();
 
                 return [
@@ -49,7 +49,7 @@ class SiswaDashboardController extends Controller
             });
 
         // Recent grades
-        $recentGrades = Submission::where('user_id', $siswa->id)
+        $recentGrades = Submission::where('siswa_id', $siswa->id)
             ->whereNotNull('nilai')
             ->with(['tugas.kelas', 'tugas.mapel'])
             ->latest('graded_at')
@@ -57,13 +57,13 @@ class SiswaDashboardController extends Controller
             ->get();
 
         // Average grade
-        $averageGrade = Submission::where('user_id', $siswa->id)
+        $averageGrade = Submission::where('siswa_id', $siswa->id)
             ->whereNotNull('nilai')
             ->avg('nilai');
 
         // Attendance summary
         $attendanceSummary = DB::table('attendance_details')
-            ->where('user_id', $siswa->id)
+            ->where('siswa_id', $siswa->id)
             ->selectRaw('
                 COUNT(*) as total,
                 SUM(CASE WHEN status = "hadir" THEN 1 ELSE 0 END) as hadir,

@@ -19,7 +19,7 @@ class ApiSubmissionController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'guru') {
+        if ($user->hasRole('guru')) {
             return response()->json(['message' => 'Hanya guru yang dapat melihat semua submission.'], 403);
         }
 
@@ -41,7 +41,7 @@ class ApiSubmissionController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'siswa') {
+        if ($user->hasRole('siswa')) {
             return response()->json(['message' => 'Hanya siswa yang dapat mengumpulkan tugas.'], 403);
         }
 
@@ -83,7 +83,7 @@ class ApiSubmissionController extends Controller
 
         // Update existing or create
         $existing = Submission::where('tugas_id', $tugas->id)
-            ->where('user_id', $user->id)
+            ->where('siswa_id', $user->id)
             ->first();
 
         if ($existing) {
@@ -110,7 +110,7 @@ class ApiSubmissionController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role === 'siswa' && $submission->user_id !== $user->id) {
+        if ($user->hasRole('siswa') && $submission->siswa_id !== $user->id) {
             return response()->json(['message' => 'Anda tidak memiliki akses.'], 403);
         }
 
@@ -129,7 +129,7 @@ class ApiSubmissionController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'guru') {
+        if ($user->hasRole('guru')) {
             return response()->json(['message' => 'Hanya guru yang dapat memberi nilai.'], 403);
         }
 

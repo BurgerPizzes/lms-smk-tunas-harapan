@@ -36,17 +36,17 @@ class ProfileController extends Controller
         ]);
 
         // Siswa-specific fields
-        if ($user->role === 'siswa') {
+        if ($user->hasRole('siswa')) {
             $validated = array_merge($validated, $request->validate([
-                'nis_nip' => ['nullable', 'string', 'max:50', 'unique:users,nis_nip,' . $user->id],
+                'nis'   => ['nullable', 'string', 'max:50', 'unique:users,nis,' . $user->id],
+                'nisn'  => ['nullable', 'string', 'max:50', 'unique:users,nisn,' . $user->id],
             ]));
         }
 
         // Guru-specific fields
-        if ($user->role === 'guru') {
+        if ($user->hasRole('guru')) {
             $validated = array_merge($validated, $request->validate([
-                'nip'    => ['nullable', 'string', 'max:50', 'unique:users,nis_nip,' . $user->id],
-                'bidang' => ['nullable', 'string', 'max:255'],
+                'nip' => ['nullable', 'string', 'max:50', 'unique:users,nip,' . $user->id],
             ]));
         }
 

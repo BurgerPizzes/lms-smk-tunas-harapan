@@ -109,8 +109,8 @@ class CommentController extends Controller
 
         // Allow deletion if: own comment, or admin/guru
         $canDelete = $comment->user_id === $user->id
-            || $user->role === 'admin'
-            || $user->role === 'guru';
+            || $user->hasRole('admin')
+            || $user->hasRole('guru');
 
         if (! $canDelete) {
             abort(403, 'Anda tidak memiliki izin untuk menghapus komentar ini.');

@@ -165,7 +165,7 @@ class GuruPenilaianController extends Controller
 
             $siswaData = $kelas->siswa->map(function ($siswa) use ($tugasList) {
                 $submissions = Submission::whereIn('tugas_id', $tugasList->pluck('id'))
-                    ->where('user_id', $siswa->id)
+                    ->where('siswa_id', $siswa->id)
                     ->get();
 
                 $graded = $submissions->whereNotNull('nilai');

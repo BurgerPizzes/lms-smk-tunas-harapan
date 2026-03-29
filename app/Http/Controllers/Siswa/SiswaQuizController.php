@@ -38,7 +38,7 @@ class SiswaQuizController extends Controller
         // Annotate with attempt status
         $quizzes->transform(function ($quiz) use ($siswa) {
             $attempt = QuizAttempt::where('quiz_id', $quiz->id)
-                ->where('user_id', $siswa->id)
+                ->where('siswa_id', $siswa->id)
                 ->latest()
                 ->first();
 
@@ -77,7 +77,7 @@ class SiswaQuizController extends Controller
 
         // Check if there's already a pending attempt
         $pendingAttempt = QuizAttempt::where('quiz_id', $quiz->id)
-            ->where('user_id', $siswa->id)
+            ->where('siswa_id', $siswa->id)
             ->where('status', 'in_progress')
             ->first();
 
@@ -88,7 +88,7 @@ class SiswaQuizController extends Controller
 
         // Check max attempts
         $totalAttempts = QuizAttempt::where('quiz_id', $quiz->id)
-            ->where('user_id', $siswa->id)
+            ->where('siswa_id', $siswa->id)
             ->count();
 
         // Create new attempt
@@ -96,7 +96,7 @@ class SiswaQuizController extends Controller
         try {
             $attempt = QuizAttempt::create([
                 'quiz_id'   => $quiz->id,
-                'user_id'   => $siswa->id,
+                'siswa_id' => $siswa->id,
                 'status'    => 'in_progress',
                 'started_at' => now(),
                 'waktu_selesai' => now()->addMinutes($quiz->durasi_menit),
@@ -124,7 +124,7 @@ class SiswaQuizController extends Controller
 
         $siswa = Auth::user();
         $attempt = QuizAttempt::where('id', $validated['attempt_id'])
-            ->where('user_id', $siswa->id)
+            ->where('siswa_id', $siswa->id)
             ->where('status', 'in_progress')
             ->firstOrFail();
 
@@ -134,7 +134,7 @@ class SiswaQuizController extends Controller
         }
 
         // Upsert answer
-        QuizAnswer::updateOrCreate(
+        QuizAttempt::updateOrCreate(
             [
                 'attempt_id'  => $attempt->id,
                 'question_id' => $validated['question_id'],
@@ -250,7 +250,7 @@ class SiswaQuizController extends Controller
         }
 
         // Load existing answers
-        $existingAnswers = QuizAnswer::where('attempt_id', $attempt->id)
+        $existingAnswers = QuizAttempt::where('attempt_id', $attempt->id)
             ->get()
             ->keyBy('question_id');
 

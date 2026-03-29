@@ -16,7 +16,7 @@ class AdminKelasController extends Controller
     public function index(): \Illuminate\View\View
     {
         $kelasList = Kelas::with(['waliKelas', 'jurusan'])
-            ->withCount('siswa')
+            ->withCount('siswas')
             ->orderBy('nama')
             ->paginate(15);
 
@@ -28,8 +28,8 @@ class AdminKelasController extends Controller
      */
     public function create(): \Illuminate\View\View
     {
-        $gurus = User::where('role', 'guru')->where('is_active', true)->orderBy('name')->get();
-        $jurusans = \App\Models\Jurusan::where('is_active', true)->orderBy('nama')->get();
+        $gurus = User::role('guru')->where('is_active', true)->orderBy('name')->get();
+        $jurusans = \App\Models\Jurusan::where('aktif', true)->orderBy('nama')->get();
 
         return view('admin.kelas.create', compact('gurus', 'jurusans'));
     }
@@ -42,9 +42,9 @@ class AdminKelasController extends Controller
         $validated = $request->validate([
             'nama'        => ['required', 'string', 'max:255'],
             'jurusan_id'  => ['nullable', 'exists:jurusans,id'],
-            'wali_kelas_id' => ['nullable', 'exists:users,id'],
+            'guru_id'     => ['nullable', 'exists:users,id'],
             'tingkat'     => ['required', 'string', 'max:10'],
-            'tahun_ajaran' => ['required', 'string', 'max:20'],
+            'tahun_ajaran_id' => ['nullable', 'exists:tahun_ajarans,id'],
             'deskripsi'   => ['nullable', 'string'],
             'is_active'   => ['sometimes', 'boolean'],
         ]);
@@ -64,7 +64,7 @@ class AdminKelasController extends Controller
      */
     public function show(Kelas $kelas): \Illuminate\View\View
     {
-        $kelas->load(['waliKelas', 'jurusan', 'siswa', 'guruMapel.mapel', 'guruMapel.guru']);
+        $kelas->load(['waliKelas', 'jurusan', 'siswas', 'gurus']);
 
         return view('admin.kelas.show', compact('kelas'));
     }
@@ -74,8 +74,8 @@ class AdminKelasController extends Controller
      */
     public function edit(Kelas $kelas): \Illuminate\View\View
     {
-        $gurus = User::where('role', 'guru')->where('is_active', true)->orderBy('name')->get();
-        $jurusans = \App\Models\Jurusan::where('is_active', true)->orderBy('nama')->get();
+        $gurus = User::role('guru')->where('is_active', true)->orderBy('name')->get();
+        $jurusans = \App\Models\Jurusan::where('aktif', true)->orderBy('nama')->get();
 
         return view('admin.kelas.edit', compact('kelas', 'gurus', 'jurusans'));
     }
@@ -88,9 +88,9 @@ class AdminKelasController extends Controller
         $validated = $request->validate([
             'nama'        => ['required', 'string', 'max:255'],
             'jurusan_id'  => ['nullable', 'exists:jurusans,id'],
-            'wali_kelas_id' => ['nullable', 'exists:users,id'],
+            'guru_id'     => ['nullable', 'exists:users,id'],
             'tingkat'     => ['required', 'string', 'max:10'],
-            'tahun_ajaran' => ['required', 'string', 'max:20'],
+            'tahun_ajaran_id' => ['nullable', 'exists:tahun_ajarans,id'],
             'deskripsi'   => ['nullable', 'string'],
             'is_active'   => ['sometimes', 'boolean'],
         ]);
@@ -109,7 +109,7 @@ class AdminKelasController extends Controller
      */
     public function destroy(Kelas $kelas): \Illuminate\Http\RedirectResponse
     {
-        if ($kelas->siswa()->exists()) {
+        if ($kelas->siswas()->exists()) {
             return back()->withErrors('Kelas tidak dapat dihapus karena masih memiliki siswa.');
         }
 
@@ -126,11 +126,11 @@ class AdminKelasController extends Controller
     public function assignWaliKelas(Request $request, Kelas $kelas): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
-            'wali_kelas_id' => ['required', 'exists:users,id'],
+            'guru_id' => ['required', 'exists:users,id'],
         ]);
 
         $kelas->update([
-            'wali_kelas_id' => $validated['wali_kelas_id'],
+            'guru_id' => $validated['guru_id'],
         ]);
 
         return redirect()
@@ -143,10 +143,10 @@ class AdminKelasController extends Controller
      */
     public function manageEnrollment(Kelas $kelas): \Illuminate\View\View
     {
-        $enrolledSiswa = $kelas->siswa()->orderBy('name')->get();
-        $availableSiswa = User::where('role', 'siswa')
+        $enrolledSiswa = $kelas->siswas()->orderBy('name')->get();
+        $availableSiswa = User::role('siswa')
             ->where('is_active', true)
-            ->whereDoesntHave('kelas', function ($query) use ($kelas) {
+            ->whereDoesntHave('enrolledClasses', function ($query) use ($kelas) {
                 $query->where('kelas.id', $kelas->id);
             })
             ->when($kelas->jurusan_id, function ($query) use ($kelas) {
@@ -168,7 +168,7 @@ class AdminKelasController extends Controller
             'user_ids.*' => ['required', 'exists:users,id'],
         ]);
 
-        $kelas->siswa()->syncWithoutDetaching($validated['user_ids']);
+        $kelas->siswas()->syncWithoutDetaching($validated['user_ids']);
 
         return redirect()
             ->route('admin.kelas.manage-enrollment', $kelas)
@@ -180,7 +180,7 @@ class AdminKelasController extends Controller
      */
     public function removeSiswa(Kelas $kelas, User $user): \Illuminate\Http\RedirectResponse
     {
-        $kelas->siswa()->detach($user->id);
+        $kelas->siswas()->detach($user->id);
 
         return redirect()
             ->route('admin.kelas.manage-enrollment', $kelas)

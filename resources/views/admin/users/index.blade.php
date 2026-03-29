@@ -96,8 +96,8 @@
                     <td class="px-5 py-4 text-sm text-gray-600 dark:text-gray-400 truncate max-w-[180px]">{{ $user->email }}</td>
                     <td class="px-5 py-4">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                            {{ $user->role === 'admin' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : ($user->role === 'guru' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400') }}">
-                            {{ ucfirst($user->role) }}
+                            {{ $user->hasRole('admin') ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : ($user->hasRole('guru') ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400') }}">
+                            {{ ucfirst($user->getRoleNames()->first() ?? '-') }}
                         </span>
                     </td>
                     <td class="px-5 py-4 text-sm text-gray-600 dark:text-gray-400 hidden md:table-cell">{{ $user->jurusan->nama ?? '-' }}</td>

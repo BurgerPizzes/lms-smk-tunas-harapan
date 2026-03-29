@@ -25,7 +25,7 @@ class SiswaNilaiController extends Controller
         $totalGraded = 0;
 
         foreach ($kelasList as $kelas) {
-            $submissions = Submission::where('user_id', $siswa->id)
+            $submissions = Submission::where('siswa_id', $siswa->id)
                 ->whereHas('tugas', function ($query) use ($kelas) {
                     $query->where('kelas_id', $kelas->id);
                 })
@@ -71,7 +71,7 @@ class SiswaNilaiController extends Controller
 
         $siswa = Auth::user();
 
-        $submissions = Submission::where('user_id', $siswa->id)
+        $submissions = Submission::where('siswa_id', $siswa->id)
             ->whereHas('tugas', function ($query) use ($kelas) {
                 $query->where('kelas_id', $kelas->id);
             })
@@ -109,7 +109,7 @@ class SiswaNilaiController extends Controller
 
         $siswa = Auth::user();
 
-        $submissions = Submission::where('user_id', $siswa->id)
+        $submissions = Submission::where('siswa_id', $siswa->id)
             ->whereHas('tugas', function ($query) use ($kelas, $mapel) {
                 $query->where('kelas_id', $kelas->id)
                       ->where('mapel_id', $mapel->id);
