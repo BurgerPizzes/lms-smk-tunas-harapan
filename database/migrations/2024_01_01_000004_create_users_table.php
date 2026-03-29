@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -20,9 +17,9 @@ return new class extends Migration
             $table->string('nip', 50)->unique()->nullable()->comment('NIP untuk guru');
             $table->string('nis', 50)->unique()->nullable()->comment('NIS untuk siswa');
             $table->string('nisn', 50)->unique()->nullable()->comment('NISN untuk siswa');
-            $table->foreignId('kelas_id')->nullable()->constrained('kelas')->nullOnDelete()->comment('FK ke tabel kelas');
-            $table->foreignId('jurusan_id')->nullable()->constrained('jurusans')->nullOnDelete()->comment('FK ke tabel jurusan');
-            $table->foreignId('tahun_ajaran_id')->nullable()->constrained('tahun_ajarans')->nullOnDelete()->comment('FK ke tabel tahun ajaran');
+            $table->unsignedBigInteger('kelas_id')->nullable()->comment('FK ke tabel kelas');
+            $table->unsignedBigInteger('jurusan_id')->nullable()->comment('FK ke tabel jurusan');
+            $table->unsignedBigInteger('tahun_ajaran_id')->nullable()->comment('FK ke tabel tahun ajaran');
             $table->enum('jenis_kelamin', ['laki-laki', 'perempuan'])->nullable()->comment('Jenis kelamin');
             $table->string('tempat_lahir')->nullable()->comment('Tempat lahir');
             $table->date('tanggal_lahir')->nullable()->comment('Tanggal lahir');
@@ -41,9 +38,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');

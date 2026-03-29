@@ -6,18 +6,13 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * Kelas (Classes)
-     */
     public function up(): void
     {
         Schema::create('kelas', function (Blueprint $table) {
             $table->id();
             $table->string('nama')->comment('Nama kelas, contoh: PPLG X-1');
-            $table->foreignId('jurusan_id')->constrained('jurusans')->cascadeOnDelete()->comment('FK ke jurusan');
-            $table->foreignId('tahun_ajaran_id')->constrained('tahun_ajarans')->cascadeOnDelete()->comment('FK ke tahun ajaran');
+            $table->unsignedBigInteger('jurusan_id')->comment('FK ke jurusan');
+            $table->unsignedBigInteger('tahun_ajaran_id')->comment('FK ke tahun ajaran');
             $table->tinyInteger('tingkat')->comment('Tingkat kelas: 10, 11, atau 12');
             $table->string('ruangan')->nullable()->comment('Nama/nomor ruangan');
             $table->integer('kapasitas')->default(36)->comment('Kapasitas maksimal siswa');
@@ -25,7 +20,7 @@ return new class extends Migration
             $table->text('deskripsi')->nullable()->comment('Deskripsi kelas');
             $table->boolean('is_active')->default(true)->comment('Status aktif kelas');
             $table->string('cover_image')->nullable()->comment('Path gambar cover kelas');
-            $table->foreignId('guru_id')->nullable()->constrained('users')->nullOnDelete()->comment('FK ke users (wali kelas)');
+            $table->unsignedBigInteger('guru_id')->nullable()->comment('FK ke users (wali kelas)');
             $table->timestamps();
 
             $table->index('is_active');
@@ -34,9 +29,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('kelas');
