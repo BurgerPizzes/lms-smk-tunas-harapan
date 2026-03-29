@@ -136,8 +136,9 @@ class NotificationSeeder extends Seeder
         $batches = array_chunk($notifications, $batchSize);
 
         foreach ($batches as $batch) {
-            // Add timestamps
+            // Add timestamps and JSON-encode data (insert() bypasses model casts)
             foreach ($batch as &$notif) {
+                $notif['data'] = is_array($notif['data']) ? json_encode($notif['data']) : $notif['data'];
                 $notif['created_at'] = now()->subHours(mt_rand(1, 168));
                 $notif['updated_at'] = now();
             }
