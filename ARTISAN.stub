@@ -1,0 +1,103 @@
+# ==============================================================================
+# ARTISAN STUB - LMS SMK Tunas Harapan
+# ==============================================================================
+#
+# This file is a reference note explaining that the `artisan` file in this
+# Laravel 11 project is a standard Laravel Artisan console entry point.
+#
+# The actual `artisan` file should be located at the project root and contains
+# the following standard code:
+#
+# ==============================================================================
+# #!/usr/bin/env php
+# <?php
+#
+# define('LARAVEL_START', microtime(true));
+#
+# /*
+# |--------------------------------------------------------------------------
+# | Register The Auto Loader
+# |--------------------------------------------------------------------------
+# |
+# | Composer provides a convenient, automatically generated class loader for
+# | our application. We just need to utilize it! We'll require it into the
+# | script here so we don't need to worry about the loading of any of
+# | our classes manually.
+# |
+# */
+#
+# require __DIR__.'/vendor/autoload.php';
+#
+# /*
+# |--------------------------------------------------------------------------
+# | Run The Artisan Application
+# |--------------------------------------------------------------------------
+# |
+# | When we run the Artisan console application, the current CLI command will
+# | be executed. We'll use the bootstrap file that is already generated for
+# | us by the framework to simplify this process.
+# |
+# */
+#
+# $app = require_once __DIR__.'/bootstrap/app.php';
+#
+# /*
+# |--------------------------------------------------------------------------
+# | Run The Console Command
+# |--------------------------------------------------------------------------
+# |
+# | The console kernel handles all of the console-related commands for the
+# | application, including scheduling, Artisan commands, and more. It uses
+# | the bootstrap/app.php file to bootstrap the application.
+# |
+# */
+#
+# $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+#
+# $status = $kernel->handle(
+#     $input = new Symfony\Component\Console\Input\ArgvInput,
+#     new Symfony\Component\Console\Output\ConsoleOutput
+# );
+#
+# /*
+# |--------------------------------------------------------------------------
+# | Shutdown The Application
+# |--------------------------------------------------------------------------
+# |
+# | Once the Artisan command has finished running, we will fire off the
+# | shutdown events so that any final work may be done by the application
+# | before we terminate the process.
+# |
+# */
+#
+# $kernel->terminate($input, $status);
+#
+# exit($status);
+# ==============================================================================
+#
+# NOTE: In Laravel 11, the bootstrap/app.php returns an Application instance
+# directly, and the artisan entry point is simpler:
+#
+#   #!/usr/bin/env php
+#   <?php
+#
+#   use Symfony\Component\Console\Input\ArgvInput;
+#
+#   define('LARAVEL_START', microtime(true));
+#
+#   require __DIR__.'/vendor/autoload.php';
+#
+#   $app = require_once __DIR__.'/bootstrap/app.php';
+#
+#   $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+#
+#   $status = $kernel->handle(
+#       new ArgvInput,
+#       new Symfony\Component\Console\Output\ConsoleOutput
+#   );
+#
+#   $kernel->terminate(new ArgvInput, $status);
+#
+#   exit($status);
+#
+# ==============================================================================

@@ -1,0 +1,164 @@
+/* Custom LMS Styles for SMK Tunas Harapan */
+
+/* ===== Base Overrides ===== */
+@layer base {
+    body {
+        font-family: 'Inter', system-ui, sans-serif;
+    }
+    
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+}
+
+/* ===== Sidebar Styles ===== */
+.sidebar {
+    transition: transform 0.3s ease, width 0.3s ease;
+}
+
+.sidebar-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200;
+}
+
+.sidebar-link:hover {
+    @apply bg-white/10;
+}
+
+.sidebar-link.active {
+    @apply bg-white/20 shadow-sm;
+}
+
+/* ===== Card Styles ===== */
+.lms-card {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-shadow duration-200;
+}
+
+.lms-card:hover {
+    @apply shadow-md;
+}
+
+/* ===== Timeline ===== */
+.timeline-item {
+    @apply relative pl-8 pb-6 border-l-2 border-gray-200 dark:border-gray-700;
+}
+
+.timeline-item::before {
+    @apply absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-white dark:bg-gray-800 border-2 border-blue-500;
+    content: '';
+}
+
+/* ===== Quiz Timer ===== */
+.quiz-timer {
+    @apply font-mono text-2xl font-bold;
+}
+
+.quiz-timer.warning {
+    @apply text-yellow-500;
+}
+
+.quiz-timer.danger {
+    @apply text-red-500 animate-pulse;
+}
+
+/* ===== Rich Text Editor ===== */
+.rich-editor {
+    @apply min-h-[200px] p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+.rich-editor-content {
+    @apply prose prose-sm dark:prose-invert max-w-none;
+}
+
+/* ===== Status Badges ===== */
+.badge-submitted {
+    @apply bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400;
+}
+
+.badge-late {
+    @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400;
+}
+
+.badge-not-submitted {
+    @apply bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300;
+}
+
+.badge-graded {
+    @apply bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400;
+}
+
+.badge-hadir {
+    @apply bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400;
+}
+
+.badge-izin {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400;
+}
+
+.badge-sakit {
+    @apply bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400;
+}
+
+.badge-alpha {
+    @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400;
+}
+
+/* ===== Animations ===== */
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
+}
+
+/* ===== Print Styles ===== */
+@media print {
+    .sidebar, .navbar, .no-print {
+        display: none !important;
+    }
+    .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+    .lms-card {
+        box-shadow: none;
+        border: 1px solid #e5e7eb;
+    }
+}
+
+/* ===== Responsive Utilities ===== */
+@media (max-width: 768px) {
+    .sidebar-overlay {
+        @apply fixed inset-0 bg-black/50 z-40;
+    }
+}
