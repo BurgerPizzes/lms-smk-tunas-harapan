@@ -15,11 +15,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Disable lazy loading prevention during seeding.
+        // Disable strict mode violations during seeding.
         // Seeders access relationships (e.g. $tugas->kelas->siswas) without
         // eager loading, which triggers violations when Model::shouldBeStrict()
         // is enabled in AppServiceProvider.
         Model::preventLazyLoading(false);
+        Model::preventAccessingMissingAttributes(false);
 
         $this->command->info('🔄 Memulai seeding database LMS SMK Tunas Harapan...');
 
