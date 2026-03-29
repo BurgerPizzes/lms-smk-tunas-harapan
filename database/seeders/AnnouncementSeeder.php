@@ -58,7 +58,7 @@ class AnnouncementSeeder extends Seeder
                 'class_id'     => null,
                 'user_id'      => $admin->id,
                 'judul'        => 'Pendaftaran Lomba Hackathon Nasional',
-                'konten'       => "<p>SMK Tunas Harapan membuka pendaftaran untuk mengikuti <strong>Lomba Hackathon Nasional 2024</strong> tingkat SMK.</p><p>Syarat:</p><ul><li>Siswa kelas X-XII jurusan PPLG/RPL</li><li>Tim terdiri dari 3 orang</li><li>Membuat aplikasi dengan tema "Smart City"</li></ul><p>Pendaftaran ditutup tanggal 15 Oktober 2024. Hubungi Pak Budi Santoso untuk informasi lebih lanjut.</p>",
+                'konten'       => "<p>SMK Tunas Harapan membuka pendaftaran untuk mengikuti <strong>Lomba Hackathon Nasional 2024</strong> tingkat SMK.</p><p>Syarat:</p><ul><li>Siswa kelas X-XII jurusan PPLG/RPL</li><li>Tim terdiri dari 3 orang</li><li>Membuat aplikasi dengan tema \"Smart City\"</li></ul><p>Pendaftaran ditutup tanggal 15 Oktober 2024. Hubungi Pak Budi Santoso untuk informasi lebih lanjut.</p>",
                 'priority'     => 2,
                 'is_published' => true,
                 'published_at' => now()->subDays(3),
