@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -14,6 +15,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Disable lazy loading prevention during seeding.
+        // Seeders access relationships (e.g. $tugas->kelas->siswas) without
+        // eager loading, which triggers violations when Model::shouldBeStrict()
+        // is enabled in AppServiceProvider.
+        Model::preventLazyLoading(false);
+
         $this->command->info('🔄 Memulai seeding database LMS SMK Tunas Harapan...');
 
         // Disable foreign key checks to allow truncation
