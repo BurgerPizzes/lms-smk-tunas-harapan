@@ -20,7 +20,7 @@ class AttendanceDetail extends Model
     ];
 
     protected $casts = [
-        'status' => \App\Enums\AttendanceStatus::class,
+        'status' => \App\Enums\AttendanceStatusEnum::class,
     ];
 
     // ─── Relationships ────────────────────────────────────────────

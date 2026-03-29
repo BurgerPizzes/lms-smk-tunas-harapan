@@ -96,7 +96,7 @@ return [
     'cache' => [
         'key' => 'spatie.permission.cache',
 
-        'store' => 'default',
+        'store' => 'file',
     ],
 
     /*

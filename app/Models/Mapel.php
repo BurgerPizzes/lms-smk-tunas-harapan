@@ -26,7 +26,7 @@ class Mapel extends Model
     ];
 
     protected $casts = [
-        'kategori' => \App\Enums\KategoriMapel::class,
+        'kategori' => \App\Enums\SubjectCategoryEnum::class,
         'kkm' => 'integer',
         'is_active' => 'boolean',
     ];

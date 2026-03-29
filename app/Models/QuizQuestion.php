@@ -28,7 +28,7 @@ class QuizQuestion extends Model
     ];
 
     protected $casts = [
-        'tipe' => \App\Enums\QuizQuestionType::class,
+        'tipe' => 'string',
         'poin' => 'integer',
         'urutan' => 'integer',
     ];

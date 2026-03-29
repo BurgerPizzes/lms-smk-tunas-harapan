@@ -26,7 +26,7 @@ class Submission extends Model
 
     protected $casts = [
         'submitted_at' => 'datetime',
-        'status' => \App\Enums\SubmissionStatus::class,
+        'status' => \App\Enums\SubmissionStatusEnum::class,
         'nilai' => 'integer',
     ];
 

@@ -34,7 +34,7 @@ class QuizAttempt extends Model
         'waktu_mulai' => 'datetime',
         'waktu_selesai' => 'datetime',
         'durasi_detik' => 'integer',
-        'status' => \App\Enums\QuizAttemptStatus::class,
+        'status' => 'string',
         'answers' => 'array',
     ];
 
