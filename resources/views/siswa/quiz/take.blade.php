@@ -361,7 +361,7 @@
         clearInterval(timerInterval);
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '{{ route('siswa.quiz.submit', $quiz) }}';
+        form.action = '{{ route('siswa.quiz.submit-answer', $quiz) }}';
         
         const csrf = document.querySelector('meta[name="csrf-token"]');
         if (csrf) {

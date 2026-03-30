@@ -65,7 +65,7 @@
                 $persen = $ka['persentase'] ?? 0;
                 $colorClass = $persen >= 80 ? 'green' : ($persen >= 60 ? 'yellow' : 'red');
             @endphp
-            <a href="{{ route('siswa.absensi.by-class', $ka['kelas_id']) }}" class="block bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+            <a href="{{ route('siswa.absensi.by-kelas', $ka['kelas_id']) }}" class="block bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
                 {{-- Class Name --}}
                 <div class="flex items-center gap-3 mb-4">
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color: {{ $ka['cover_color'] ?? '#4F46E5' }}">

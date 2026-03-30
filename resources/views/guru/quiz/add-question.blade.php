@@ -16,7 +16,7 @@
 </div>
 
 <div class="max-w-3xl">
-    <form method="POST" action="{{ isset($soal) ? route('guru.quiz.update-question', [$quiz->id, $soal->id]) : route('guru.quiz.store-question', $quiz->id) }}" class="space-y-6">
+    <form method="POST" action="{{ isset($soal) ? route('guru.quiz.update-question', [$quiz->id, $soal->id]) : route('guru.quiz.add-question', $quiz->id) }}" class="space-y-6">
         @csrf
         @isset($soal) @method('PUT') @endisset
 

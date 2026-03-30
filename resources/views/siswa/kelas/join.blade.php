@@ -19,7 +19,7 @@
             </div>
 
             {{-- Form --}}
-            <form action="{{ route('siswa.kelas.join.store') }}" method="POST" class="space-y-6">
+            <form action="{{ route('siswa.kelas.storeJoin') }}" method="POST" class="space-y-6">
                 @csrf
 
                 {{-- Error / Success Messages --}}

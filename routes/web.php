@@ -73,12 +73,43 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name
 Route::middleware('auth')->group(function () {
 
     // ------------------------------------------------------------------
+    // Generic Dashboard Route (role-based redirect)
+    // ------------------------------------------------------------------
+    Route::get('/dashboard', function () {
+        $user = auth()->user();
+        if ($user->hasRole('admin')) {
+            return redirect()->route('admin.dashboard');
+        } elseif ($user->hasRole('guru')) {
+            return redirect()->route('guru.dashboard');
+        } elseif ($user->hasRole('siswa')) {
+            return redirect()->route('siswa.dashboard');
+        }
+        return redirect()->route('login');
+    })->name('dashboard');
+
+    // ------------------------------------------------------------------
+    // Generic Kelas Show Route (role-based redirect)
+    // ------------------------------------------------------------------
+    Route::get('/kelas/{id}', function ($id) {
+        $user = auth()->user();
+        if ($user->hasRole('admin')) {
+            return redirect()->route('admin.kelas.show', $id);
+        } elseif ($user->hasRole('guru')) {
+            return redirect()->route('guru.kelas.show', $id);
+        } elseif ($user->hasRole('siswa')) {
+            return redirect()->route('siswa.kelas.show', $id);
+        }
+        return redirect()->route('login');
+    })->name('kelas.show');
+
+    // ------------------------------------------------------------------
     // Profile Routes
     // ------------------------------------------------------------------
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo');
+    Route::delete('/profile/photo', [ProfileController::class, 'removePhoto'])->name('profile.remove-avatar');
 
     // ------------------------------------------------------------------
     // Notification Routes
@@ -122,6 +153,7 @@ Route::middleware('auth')->group(function () {
 
         // Jurusan (Majors)
         Route::resource('jurusan', AdminJurusanController::class);
+        Route::put('jurusan/{id}/toggle-status', [AdminJurusanController::class, 'toggleStatus'])->name('jurusan.toggle-status');
 
         // Mata Pelajaran (Subjects)
         Route::resource('mapel', AdminMapelController::class);
@@ -144,7 +176,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
         Route::put('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
         Route::get('/backup', [AdminController::class, 'backup'])->name('backup');
-        Route::post('/backup', [AdminController::class, 'runBackup'])->name('backup.run');
+        Route::post('/backup', [AdminController::class, 'backup'])->name('backup.run');
         Route::post('/clear-cache', [AdminController::class, 'clearCache'])->name('clear-cache');
     });
 
@@ -163,6 +195,8 @@ Route::middleware('auth')->group(function () {
         Route::get('kelas/{id}/members', [GuruKelasController::class, 'members'])->name('kelas.members');
         Route::delete('kelas/{id}/remove-member/{userId}', [GuruKelasController::class, 'removeMember'])->name('kelas.remove-member');
 
+        // Materi (Materials) - Global listing (no kelasId required)
+        Route::get('materi', function () { return redirect()->route('guru.kelas.index'); })->name('materi.index');
         // Materi (Materials) - Scoped to Kelas
         Route::get('kelas/{kelasId}/materi', [GuruMateriController::class, 'index'])->name('kelas.materi.index');
         Route::get('kelas/{kelasId}/materi/create', [GuruMateriController::class, 'create'])->name('kelas.materi.create');
@@ -171,37 +205,45 @@ Route::middleware('auth')->group(function () {
         Route::post('materi/reorder', [GuruMateriController::class, 'reorder'])->name('materi.reorder');
         Route::resource('materi', GuruMateriController::class)->except(['index', 'create', 'store']);
 
+        // Tugas (Assignments) - Global listing (no kelasId required)
+        Route::get('tugas', function () { return redirect()->route('guru.kelas.index'); })->name('tugas.index');
         // Tugas (Assignments) - Scoped to Kelas
         Route::get('kelas/{kelasId}/tugas', [GuruTugasController::class, 'index'])->name('kelas.tugas.index');
         Route::get('kelas/{kelasId}/tugas/create', [GuruTugasController::class, 'create'])->name('kelas.tugas.create');
         Route::post('kelas/{kelasId}/tugas', [GuruTugasController::class, 'store'])->name('kelas.tugas.store');
         Route::resource('tugas', GuruTugasController::class)->except(['index', 'create', 'store']);
 
-        // Penilaian (Grading)
-        Route::get('tugas/{tugasId}/penilaian', [GuruPenilaianController::class, 'index'])->name('penilaian.index');
+        // Penilaian (Grading) - Global listing (no tugasId required)
+        Route::get('penilaian', function () { return redirect()->route('guru.kelas.index'); })->name('penilaian.index');
+        // Penilaian (Grading) - Scoped to Tugas
+        Route::get('tugas/{tugasId}/penilaian', [GuruPenilaianController::class, 'index'])->name('tugas.penilaian.index');
         Route::put('penilaian/{submissionId}/grade', [GuruPenilaianController::class, 'grade'])->name('penilaian.grade');
         Route::post('penilaian/grade-bulk', [GuruPenilaianController::class, 'gradeBulk'])->name('penilaian.grade-bulk');
-        Route::get('penilaian/export/{kelasId}/{mapelId}', [GuruPenilaianController::class, 'export'])->name('penilaian.export');
-        Route::get('penilaian/recap/{kelasId}', [GuruPenilaianController::class, 'recap'])->name('penilaian.recap');
+        Route::get('penilaian/export/{kelasId}/{mapelId}', [GuruPenilaianController::class, 'exportNilai'])->name('penilaian.export');
+        Route::get('penilaian/recap/{kelasId}', [GuruPenilaianController::class, 'recapNilai'])->name('penilaian.recap');
 
-        // Absensi (Attendance)
-        Route::get('kelas/{kelasId}/absensi', [GuruAbsensiController::class, 'index'])->name('absensi.index');
-        Route::get('kelas/{kelasId}/absensi/create', [GuruAbsensiController::class, 'create'])->name('absensi.create');
-        Route::post('kelas/{kelasId}/absensi', [GuruAbsensiController::class, 'store'])->name('absensi.store');
+        // Absensi (Attendance) - Global listing (no kelasId required)
+        Route::get('absensi', function () { return redirect()->route('guru.kelas.index'); })->name('absensi.index');
+        // Absensi (Attendance) - Scoped to Kelas
+        Route::get('kelas/{kelasId}/absensi', [GuruAbsensiController::class, 'index'])->name('kelas.absensi.index');
+        Route::get('kelas/{kelasId}/absensi/create', [GuruAbsensiController::class, 'create'])->name('kelas.absensi.create');
+        Route::post('kelas/{kelasId}/absensi', [GuruAbsensiController::class, 'store'])->name('kelas.absensi.store');
         Route::get('absensi/{id}', [GuruAbsensiController::class, 'show'])->name('absensi.show');
         Route::put('absensi/{id}', [GuruAbsensiController::class, 'update'])->name('absensi.update');
         Route::get('absensi/recap/{kelasId}', [GuruAbsensiController::class, 'recap'])->name('absensi.recap');
-        Route::get('absensi/export/{kelasId}', [GuruAbsensiController::class, 'export'])->name('absensi.export');
+        Route::get('absensi/export/{kelasId}', [GuruAbsensiController::class, 'exportRecap'])->name('absensi.export');
 
         // Diskusi (Discussions)
         Route::post('diskusi', [GuruDiskusiController::class, 'store'])->name('diskusi.store');
         Route::put('diskusi/{id}', [GuruDiskusiController::class, 'update'])->name('diskusi.update');
         Route::delete('diskusi/{id}', [GuruDiskusiController::class, 'destroy'])->name('diskusi.destroy');
 
-        // Quiz
-        Route::get('kelas/{kelasId}/quiz', [GuruQuizController::class, 'index'])->name('quiz.index');
-        Route::get('kelas/{kelasId}/quiz/create', [GuruQuizController::class, 'create'])->name('quiz.create');
-        Route::post('kelas/{kelasId}/quiz', [GuruQuizController::class, 'store'])->name('quiz.store');
+        // Quiz - Global listing (no kelasId required)
+        Route::get('quiz', function () { return redirect()->route('guru.kelas.index'); })->name('quiz.index');
+        // Quiz - Scoped to Kelas
+        Route::get('kelas/{kelasId}/quiz', [GuruQuizController::class, 'index'])->name('kelas.quiz.index');
+        Route::get('kelas/{kelasId}/quiz/create', [GuruQuizController::class, 'create'])->name('kelas.quiz.create');
+        Route::post('kelas/{kelasId}/quiz', [GuruQuizController::class, 'store'])->name('kelas.quiz.store');
         Route::get('quiz/{id}', [GuruQuizController::class, 'show'])->name('quiz.show');
         Route::post('quiz/{id}/add-question', [GuruQuizController::class, 'addQuestion'])->name('quiz.add-question');
         Route::put('quiz/{quizId}/question/{questionId}', [GuruQuizController::class, 'updateQuestion'])->name('quiz.update-question');

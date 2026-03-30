@@ -50,7 +50,7 @@
                             <p class="text-xs text-gray-500 dark:text-gray-400">NIS: {{ $siswa->nis ?? '-' }} &middot; Bergabung {{ $siswa->pivot->joined_at?->diffForHumans() ?? $siswa->created_at->diffForHumans() }}</p>
                         </div>
                     </div>
-                    <form method="POST" action="{{ route('guru.kelas.remove-siswa', [$kelas->id, $siswa->id]) }}" onsubmit="return confirm('Yakin ingin menghapus {{ $siswa->name }} dari kelas ini?')">
+                    <form method="POST" action="{{ route('guru.kelas.remove-member'), [$kelas->id, $siswa->id]) }}" onsubmit="return confirm('Yakin ingin menghapus {{ $siswa->name }} dari kelas ini?')">
                         @csrf @method('DELETE')
                         <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Hapus dari kelas">
                             <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>

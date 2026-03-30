@@ -107,7 +107,7 @@
                 @endphp
 
                 {{-- Mark as Read Form --}}
-                <form method="POST" action="{{ route('notifications.mark-read', $notification->id) }}" class="notification-row {{ !$notification->is_read ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : '' }}">
+                <form method="POST" action="{{ route('notifications.read', $notification->id) }}" class="notification-row {{ !$notification->is_read ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : '' }}">
                     @csrf
                     <a href="{{ $notifLink }}"
                        onclick="this.closest('form').submit(); return true;"

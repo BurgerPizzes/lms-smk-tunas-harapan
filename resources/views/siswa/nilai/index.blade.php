@@ -68,7 +68,7 @@
                                 </div>
                             </div>
                         @endforeach
-                        <a href="{{ route('siswa.nilai.by-class', $kn['kelas_id']) }}" class="block pt-2 text-sm text-blue-600 hover:text-blue-700 font-medium">
+                        <a href="{{ route('siswa.nilai.by-kelas', $kn['kelas_id']) }}" class="block pt-2 text-sm text-blue-600 hover:text-blue-700 font-medium">
                             Lihat Detail →
                         </a>
                     </div>

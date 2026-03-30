@@ -12,7 +12,7 @@
 </div>
 
 <div class="max-w-3xl">
-    <form method="POST" action="{{ route('guru.materi.store') }}" enctype="multipart/form-data" class="space-y-6">
+    <form method="POST" action="{{ route('guru.kelas.materi.store') }}" enctype="multipart/form-data" class="space-y-6">
         @csrf
 
         <!-- Basic Info -->

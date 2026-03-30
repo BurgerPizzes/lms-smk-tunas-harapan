@@ -218,7 +218,7 @@
         <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-1">Ubah Password</h2>
         <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Pastikan akun Anda menggunakan password yang kuat dan tidak mudah ditebak.</p>
 
-        <form method="POST" action="{{ route('profile.update-password') }}">
+        <form method="POST" action="{{ route('profile.password') }}">
             @csrf
 
             <div class="space-y-5">

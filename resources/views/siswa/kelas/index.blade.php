@@ -96,7 +96,7 @@
                     <h3 class="text-xl font-bold text-gray-900">Bergabung ke Kelas</h3>
                     <p class="text-sm text-gray-500 mt-2">Masukkan kode yang diberikan oleh guru</p>
                 </div>
-                <form action="{{ route('siswa.kelas.join.store') }}" method="POST" class="mt-6 space-y-4">
+                <form action="{{ route('siswa.kelas.storeJoin') }}" method="POST" class="mt-6 space-y-4">
                     @csrf
                     @if(session('error'))
                         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">

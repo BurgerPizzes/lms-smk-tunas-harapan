@@ -68,7 +68,7 @@
                         <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Lampiran</h3>
                         <div class="space-y-2">
                             @foreach($materi->attachments as $file)
-                                <a href="{{ route('siswa.materi.download', $file->id) }}" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+                                <a href="{{ route('files.download', $file->id) }}" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
                                     <div class="w-10 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center flex-shrink-0">
                                         <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     </div>
@@ -104,7 +104,7 @@
                 </h2>
 
                 {{-- Comment Form --}}
-                <form action="{{ route('siswa.materi.comment.store', [$kelas, $materi]) }}" method="POST" class="mb-6">
+                <form action="{{ route('comments.store', [$kelas, $materi]) }}" method="POST" class="mb-6">
                     @csrf
                     <div class="flex gap-3">
                         <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold flex-shrink-0">

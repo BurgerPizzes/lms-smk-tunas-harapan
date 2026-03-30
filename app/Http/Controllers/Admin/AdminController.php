@@ -39,7 +39,7 @@ class AdminController extends Controller
         // Database size (MySQL/MariaDB)
         $dbSize = $this->getDatabaseSize();
 
-        return view('admin.system.index', compact(
+        return view('admin.settings', compact(
             'systemInfo', 'storageUsedFormatted', 'dbSize'
         ));
     }
@@ -77,7 +77,7 @@ class AdminController extends Controller
         // Distinct actions for filter dropdown
         $actions = ActivityLog::distinct()->pluck('action')->sort();
 
-        return view('admin.system.logs', compact('logs', 'actions'));
+        return view('admin.logs', compact('logs', 'actions'));
     }
 
     /**
@@ -97,7 +97,7 @@ class AdminController extends Controller
             'mail_from'   => config('mail.from.address'),
         ];
 
-        return view('admin.system.settings', compact('settings'));
+        return view('admin.settings', compact('settings'));
     }
 
     /**
@@ -154,11 +154,38 @@ class AdminController extends Controller
             Artisan::call('event:clear');
 
             return redirect()
-                ->route('admin.system.index')
+                ->route('admin.settings')
                 ->with('success', 'Semua cache berhasil dibersihkan.');
         } catch (\Throwable $e) {
             return back()->withErrors('Gagal membersihkan cache: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Update system settings.
+     */
+    public function updateSettings(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        // Validate and update settings
+        $validated = $request->validate([
+            'app_name' => 'nullable|string|max:255',
+            'school_address' => 'nullable|string|max:500',
+            'school_phone' => 'nullable|string|max:20',
+            'school_email' => 'nullable|email|max:255',
+            'mail_host' => 'nullable|string|max:255',
+            'mail_port' => 'nullable|integer',
+            'mail_username' => 'nullable|string|max:255',
+            'mail_password' => 'nullable|string|max:255',
+            'mail_encryption' => 'nullable|in:,tls,ssl',
+            'mail_from_address' => 'nullable|email|max:255',
+        ]);
+
+        // Update .env settings
+        if (!empty($validated['app_name'])) {
+            $this->setEnvValue('APP_NAME', $validated['app_name']);
+        }
+
+        return back()->with('success', 'Pengaturan berhasil diperbarui.');
     }
 
     /**
@@ -190,6 +217,30 @@ class AdminController extends Controller
         }
 
         return round($bytes, $precision) . ' ' . $units[$i];
+    }
+
+    /**
+     * Set environment variable value.
+     */
+    private function setEnvValue(string $key, string $value): void
+    {
+        $path = base_path('.env');
+
+        if (file_exists($path)) {
+            $content = file_get_contents($path);
+
+            if (preg_match('/^' . preg_quote($key, '/') . '=/', $content)) {
+                $content = preg_replace(
+                    '/^' . preg_quote($key, '/') . '=.*/m',
+                    $key . '=' . $value,
+                    $content
+                );
+            } else {
+                $content .= "\n{$key}={$value}";
+            }
+
+            file_put_contents($path, $content);
+        }
     }
 
     /**

@@ -12,7 +12,7 @@
 </div>
 
 <div class="max-w-3xl">
-    <form method="POST" action="{{ route('guru.quiz.store') }}" class="space-y-6">
+    <form method="POST" action="{{ route('guru.kelas.quiz.store') }}" class="space-y-6">
         @csrf
 
         <!-- Basic Info -->

@@ -82,7 +82,7 @@
                         {{ strtoupper(substr(auth()->user()->name ?? 'G', 0, 1)) }}
                     </div>
                     <div class="flex-1">
-                        <form method="POST" action="{{ route('guru.kelas.announcement.store', $kelas->id) }}">
+                        <form method="POST" action="{{ route('diskusi.store') $kelas->id) }}">
                             @csrf
                             <textarea name="pesan" rows="2" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none" placeholder="Bagikan pengumuman ke kelas..."></textarea>
                             <div class="flex items-center justify-end mt-2 space-x-2">
@@ -152,7 +152,7 @@
                         @endforeach
                     </select>
                 </div>
-                <a href="{{ route('guru.materi.create', ['kelas_id' => $kelas->id]) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+                <a href="{{ route('guru.kelas.materi.create', ['kelas_id' => $kelas->id]) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                     Tambah Materi
                 </a>
@@ -280,7 +280,7 @@
         <!-- ABSENSI TAB -->
         <div id="content-absensi" class="tab-content hidden">
             <div class="flex items-center justify-between mb-4">
-                <a href="{{ route('guru.absensi.create', ['kelas_id' => $kelas->id]) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+                <a href="{{ route('guru.kelas.absensi.create', ['kelas_id' => $kelas->id]) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                     Input Absensi
                 </a>
@@ -316,7 +316,7 @@
         <!-- QUIZ TAB -->
         <div id="content-quiz" class="tab-content hidden">
             <div class="flex items-center justify-end mb-4">
-                <a href="{{ route('guru.quiz.create', ['kelas_id' => $kelas->id]) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+                <a href="{{ route('guru.kelas.quiz.create', ['kelas_id' => $kelas->id]) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                     Buat Quiz
                 </a>
