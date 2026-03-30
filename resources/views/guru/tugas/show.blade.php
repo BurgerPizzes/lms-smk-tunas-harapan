@@ -4,7 +4,7 @@
 
 <!-- Back & Actions -->
 <div class="flex items-center justify-between mb-6">
-    <a href="{{ route('guru.kelas.show', $tugas->kelas_id ?? '') }}" class="inline-flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+    <a href="{{ route('guru.kelas.show', $tugas->class_id ?? '') }}" class="inline-flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
         <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
         Kembali ke Kelas
     </a>
@@ -173,7 +173,7 @@
             <div class="space-y-3">
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Kelas</p>
-                    <a href="{{ route('guru.kelas.show', $tugas->kelas_id) }}" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">{{ $tugas->kelas->nama ?? '-' }}</a>
+                    <a href="{{ route('guru.kelas.show', $tugas->class_id) }}" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">{{ $tugas->kelas->nama ?? '-' }}</a>
                 </div>
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Mata Pelajaran</p>

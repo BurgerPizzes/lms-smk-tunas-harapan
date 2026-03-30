@@ -152,7 +152,7 @@
                         @endforeach
                     </select>
                 </div>
-                <a href="{{ route('guru.kelas.materi.create', ['kelas_id' => $kelas->id]) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+                <a href="{{ route('guru.kelas.materi.create', $kelas->id) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                     Tambah Materi
                 </a>
@@ -195,7 +195,7 @@
         <!-- TUGAS TAB -->
         <div id="content-tugas" class="tab-content hidden">
             <div class="flex items-center justify-end mb-4">
-                <a href="{{ route('guru.tugas.create', ['kelas_id' => $kelas->id]) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+                <a href="{{ route('guru.kelas.tugas.create', $kelas->id) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                     Buat Tugas
                 </a>
@@ -280,7 +280,7 @@
         <!-- ABSENSI TAB -->
         <div id="content-absensi" class="tab-content hidden">
             <div class="flex items-center justify-between mb-4">
-                <a href="{{ route('guru.kelas.absensi.create', ['kelas_id' => $kelas->id]) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+                <a href="{{ route('guru.kelas.absensi.create', $kelas->id) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                     Input Absensi
                 </a>
@@ -316,7 +316,7 @@
         <!-- QUIZ TAB -->
         <div id="content-quiz" class="tab-content hidden">
             <div class="flex items-center justify-end mb-4">
-                <a href="{{ route('guru.kelas.quiz.create', ['kelas_id' => $kelas->id]) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+                <a href="{{ route('guru.kelas.quiz.create', $kelas->id) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                     Buat Quiz
                 </a>

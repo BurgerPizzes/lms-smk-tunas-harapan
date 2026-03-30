@@ -72,11 +72,11 @@
                                 </div>
                                 {{-- Schedule --}}
                                 <div class="flex flex-wrap items-center gap-4 mt-2 text-xs text-gray-400">
-                                    @if($quiz->waktu_mulai)
-                                        <span>Mulai: {{ $quiz->waktu_mulai->translatedFormat('d M Y, H:i') }}</span>
+                                    @if($quiz->mulai_at)
+                                        <span>Mulai: {{ $quiz->mulai_at->translatedFormat('d M Y, H:i') }}</span>
                                     @endif
-                                    @if($quiz->waktu_selesai)
-                                        <span>Selesai: {{ $quiz->waktu_selesai->translatedFormat('d M Y, H:i') }}</span>
+                                    @if($quiz->selesai_at)
+                                        <span>Selesai: {{ $quiz->selesai_at->translatedFormat('d M Y, H:i') }}</span>
                                     @endif
                                 </div>
                             </div>
@@ -88,7 +88,7 @@
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         Mulai
                                     </a>
-                                @elseif($attempt && $attempt->nilai !== null)
+                                @elseif($attempt && $attempt->skor !== null)
                                     <a href="{{ route('siswa.quiz.result', [$quiz, $attempt]) }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         Lihat Hasil

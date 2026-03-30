@@ -21,10 +21,10 @@
                 <div class="relative w-40 h-40 flex-shrink-0">
                     <svg class="w-40 h-40 transform -rotate-90" viewBox="0 0 120 120">
                         <circle cx="60" cy="60" r="52" fill="none" stroke="#F3F4F6" stroke-width="10"/>
-                        <circle cx="60" cy="60" r="52" fill="none" stroke="{{ ($attempt->nilai ?? 0) >= 75 ? '#22C55E' : '#EF4444' }}" stroke-width="10" stroke-linecap="round" stroke-dasharray="{{ (2 * pi() * 52) }}" stroke-dashoffset="{{ (2 * pi() * 52) * (1 - ($attempt->nilai ?? 0) / 100) }}"/>
+                        <circle cx="60" cy="60" r="52" fill="none" stroke="{{ ($attempt->skor ?? 0) >= 75 ? '#22C55E' : '#EF4444' }}" stroke-width="10" stroke-linecap="round" stroke-dasharray="{{ (2 * pi() * 52) }}" stroke-dashoffset="{{ (2 * pi() * 52) * (1 - ($attempt->skor ?? 0) / 100) }}"/>
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <span class="text-4xl font-bold {{ ($attempt->nilai ?? 0) >= 75 ? 'text-green-600' : 'text-red-600' }}">{{ $attempt->nilai ?? 0 }}</span>
+                        <span class="text-4xl font-bold {{ ($attempt->skor ?? 0) >= 75 ? 'text-green-600' : 'text-red-600' }}">{{ $attempt->skor ?? 0 }}</span>
                         <span class="text-xs text-gray-500">dari 100</span>
                     </div>
                 </div>
@@ -32,9 +32,9 @@
                 {{-- Info --}}
                 <div class="flex-1 text-center sm:text-left">
                     <h1 class="text-2xl font-bold text-gray-900">{{ $quiz->judul }}</h1>
-                    <p class="text-sm text-gray-500 mt-1">{{ $quiz->mapel?->nama_mapel }}</p>
+                    <p class="text-sm text-gray-500 mt-1">{{ $quiz->mapel?->nama }}</p>
                     <div class="mt-4">
-                        @if(($attempt->nilai ?? 0) >= 75)
+                        @if(($attempt->skor ?? 0) >= 75)
                             <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-green-100 text-green-800">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 Lulus

@@ -5,23 +5,19 @@
 <!-- Header -->
 <div class="flex items-center justify-between mb-6">
     <div>
-        <a href="{{ route('guru.kelas.show', $absensi->kelas_id ?? '') }}" class="inline-flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 mb-2 transition-colors">
+        <a href="{{ route('guru.kelas.show', $attendance->class_id ?? '') }}" class="inline-flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 mb-2 transition-colors">
             <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
             Kembali ke Kelas
         </a>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Detail Absensi</h1>
         <div class="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400">
-            <span>{{ $absensi->mapel->nama ?? '-' }}</span>
+            <span>{{ $attendance->mapel->nama ?? '-' }}</span>
             <span>&middot;</span>
-            <span>{{ $absensi->tanggal?->translatedFormat('d F Y') }}</span>
+            <span>{{ $attendance->tanggal?->translatedFormat('d F Y') }}</span>
             <span>&middot;</span>
-            <span>Pertemuan {{ $absensi->pertemuan_ke ?? '-' }}</span>
+            <span>Pertemuan {{ $attendance->pertemuan_ke ?? '-' }}</span>
         </div>
     </div>
-    <a href="{{ route('guru.absensi.edit', $absensi->id) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-        <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
-        Edit
-    </a>
 </div>
 
 <!-- Stats -->

@@ -3,7 +3,7 @@
 @section('page-content')
 
 <div class="mb-6">
-    <a href="{{ isset($kelas_id) ? route('guru.kelas.show', $kelas_id) : route('guru.tugas.index') }}" class="inline-flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 mb-3 transition-colors">
+    <a href="{{ route('guru.kelas.show', $kelas->id) }}" class="inline-flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 mb-3 transition-colors">
         <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
         Kembali
     </a>
@@ -12,7 +12,7 @@
 </div>
 
 <div class="max-w-3xl">
-    <form method="POST" action="{{ route('guru.kelas.tugas.store') }}" enctype="multipart/form-data" class="space-y-6">
+    <form method="POST" action="{{ route('guru.kelas.tugas.store', $kelas->id) }}" enctype="multipart/form-data" class="space-y-6">
         @csrf
 
         <!-- Basic Info -->
@@ -37,14 +37,8 @@
                 </div>
 
                 <div>
-                    <label for="kelas_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Kelas <span class="text-red-500">*</span></label>
-                    <select id="kelas_id" name="kelas_id" required class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="">Pilih Kelas</option>
-                        @foreach($kelasList ?? [] as $k)
-                            <option value="{{ $k->id }}" {{ (old('kelas_id') == $k->id || isset($kelas_id) && $kelas_id == $k->id) ? 'selected' : '' }}>{{ $k->nama }}</option>
-                        @endforeach
-                    </select>
-                    @error('kelas_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    <label for="mapel_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Kelas</label>
+                    <input type="text" value="{{ $kelas->nama }}" disabled class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-sm cursor-not-allowed">
                 </div>
 
                 <div>

@@ -4,7 +4,7 @@
 
 <!-- Back Link & Actions -->
 <div class="flex items-center justify-between mb-6">
-    <a href="{{ route('guru.kelas.show', $materi->kelas_id ?? '') }}" class="inline-flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+    <a href="{{ route('guru.kelas.show', $materi->class_id ?? '') }}" class="inline-flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
         <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
         Kembali ke Kelas
     </a>
@@ -152,7 +152,7 @@
                                 <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $comment->user->name ?? '-' }}</span>
                                 <span class="text-xs text-gray-400 dark:text-gray-500">{{ $comment->created_at->diffForHumans() }}</span>
                             </div>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $comment->komentar ?? $comment->body ?? $comment->content }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $comment->body ?? '' }}</p>
                         </div>
                     </div>
                 </div>
@@ -174,7 +174,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Kelas</p>
-                    <a href="{{ route('guru.kelas.show', $materi->kelas_id) }}" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">{{ $materi->kelas->nama ?? '-' }}</a>
+                    <a href="{{ route('guru.kelas.show', $materi->class_id) }}" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">{{ $materi->kelas->nama ?? '-' }}</a>
                 </div>
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Mata Pelajaran</p>

@@ -57,14 +57,14 @@
                         @error('tingkat') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label for="wali_kelas_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Wali Kelas</label>
-                        <select id="wali_kelas_id" name="wali_kelas_id" class="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors">
+                        <label for="guru_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Wali Kelas</label>
+                        <select id="guru_id" name="guru_id" class="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors">
                             <option value="">Pilih Guru (Opsional)</option>
                             @foreach($guruList ?? [] as $guru)
-                                <option value="{{ $guru->id }}" {{ old('wali_kelas_id') == $guru->id ? 'selected' : '' }}>{{ $guru->name }} - {{ $guru->nip ?? '' }}</option>
+                                <option value="{{ $guru->id }}" {{ old('guru_id') == $guru->id ? 'selected' : '' }}>{{ $guru->name }} - {{ $guru->nip ?? '' }}</option>
                             @endforeach
                         </select>
-                        @error('wali_kelas_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        @error('guru_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
