@@ -42,6 +42,11 @@ class Submission extends Model
         return $this->belongsTo(User::class, 'siswa_id');
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->siswa();
+    }
+
     // ─── Methods ──────────────────────────────────────────────────
 
     public function isLate(): bool

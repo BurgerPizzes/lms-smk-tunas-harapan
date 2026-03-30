@@ -34,6 +34,11 @@ class TahunAjaran extends Model
         return $this->hasMany(User::class, 'tahun_ajaran_id');
     }
 
+    public function guruMapel(): HasMany
+    {
+        return $this->hasMany(ClassGuruMapel::class, 'tahun_ajaran_id');
+    }
+
     public function scopeAktif($query)
     {
         return $query->where('aktif', true);

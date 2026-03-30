@@ -25,7 +25,7 @@ class AdminJurusanController extends Controller
      */
     public function create(): \Illuminate\View\View
     {
-        return view('admin.jurusans.create');
+        return view('admin.jurusan.create');
     }
 
     /**
@@ -64,7 +64,7 @@ class AdminJurusanController extends Controller
      */
     public function edit(Jurusan $jurusan): \Illuminate\View\View
     {
-        return view('admin.jurusans.edit', compact('jurusan'));
+        return view('admin.jurusan.edit', compact('jurusan'));
     }
 
     /**

@@ -115,10 +115,10 @@ Route::middleware('auth')->group(function () {
     // Notification Routes
     // ------------------------------------------------------------------
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::put('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::put('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::delete('/notifications/{id}/delete', [NotificationController::class, 'destroy'])->name('notifications.destroy');
-    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
 
     // ------------------------------------------------------------------
     // Comment Routes
@@ -126,7 +126,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::put('/comments/{id}', [CommentController::class, 'update'])->name('comments.update');
     Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->name('comments.destroy');
-    Route::get('/comments/{type}/{id}', [CommentController::class, 'getByType'])->name('comments.getByType');
+    Route::get('/comments/{type}/{id}', [CommentController::class, 'getComments'])->name('comments.getByType');
 
     // ------------------------------------------------------------------
     // File Routes
@@ -134,7 +134,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/files/upload', [FileController::class, 'upload'])->name('files.upload');
     Route::get('/files/{path}/download', [FileController::class, 'download'])->name('files.download')->where('path', '.*');
     Route::delete('/files/{path}/delete', [FileController::class, 'delete'])->name('files.delete')->where('path', '.*');
-    Route::get('/files/{path}/view', [FileController::class, 'view'])->name('files.view')->where('path', '.*');
+    Route::get('/files/{path}/view', [FileController::class, 'show'])->name('files.view')->where('path', '.*');
 
     /*
     |--------------------------------------------------------------------------
@@ -160,8 +160,8 @@ Route::middleware('auth')->group(function () {
 
         // Kelas (Classes)
         Route::resource('kelas', AdminKelasController::class);
-        Route::get('kelas/{id}/members', [AdminKelasController::class, 'members'])->name('kelas.members');
-        Route::post('kelas/{id}/enroll', [AdminKelasController::class, 'enroll'])->name('kelas.enroll');
+        Route::get('kelas/{id}/members', [AdminKelasController::class, 'manageEnrollment'])->name('kelas.members');
+        Route::post('kelas/{id}/enroll', [AdminKelasController::class, 'enrollSiswa'])->name('kelas.enroll');
         Route::delete('kelas/{id}/remove-member/{userId}', [AdminKelasController::class, 'removeMember'])->name('kelas.remove-member');
 
         // Tahun Ajaran (Academic Years)
@@ -263,8 +263,8 @@ Route::middleware('auth')->group(function () {
 
         // Kelas (Classes)
         Route::get('kelas', [SiswaKelasController::class, 'index'])->name('kelas.index');
-        Route::get('kelas/join', [SiswaKelasController::class, 'join'])->name('kelas.join');
-        Route::post('kelas/join', [SiswaKelasController::class, 'storeJoin'])->name('kelas.storeJoin');
+        Route::get('kelas/join', [SiswaKelasController::class, 'joinClass'])->name('kelas.join');
+        Route::post('kelas/join', [SiswaKelasController::class, 'join'])->name('kelas.storeJoin');
         Route::get('kelas/{id}', [SiswaKelasController::class, 'show'])->name('kelas.show');
         Route::delete('kelas/{id}/leave', [SiswaKelasController::class, 'leave'])->name('kelas.leave');
 
@@ -276,17 +276,17 @@ Route::middleware('auth')->group(function () {
         Route::get('kelas/{kelasId}/tugas', [SiswaTugasController::class, 'index'])->name('tugas.index');
         Route::get('tugas/{id}', [SiswaTugasController::class, 'show'])->name('tugas.show');
         Route::post('tugas/{id}/submit', [SiswaTugasController::class, 'submit'])->name('tugas.submit');
-        Route::get('submissions', [SiswaTugasController::class, 'submissions'])->name('submissions.index');
+        Route::get('submissions', [SiswaTugasController::class, 'mySubmissions'])->name('submissions.index');
         Route::get('submissions/{id}', [SiswaTugasController::class, 'showSubmission'])->name('submissions.show');
 
         // Nilai (Grades)
         Route::get('nilai', [SiswaNilaiController::class, 'index'])->name('nilai.index');
-        Route::get('nilai/kelas/{kelasId}', [SiswaNilaiController::class, 'byKelas'])->name('nilai.by-kelas');
-        Route::get('nilai/kelas/{kelasId}/mapel/{mapelId}', [SiswaNilaiController::class, 'byKelasMapel'])->name('nilai.by-kelas-mapel');
+        Route::get('nilai/kelas/{kelasId}', [SiswaNilaiController::class, 'byClass'])->name('nilai.by-kelas');
+        Route::get('nilai/kelas/{kelasId}/mapel/{mapelId}', [SiswaNilaiController::class, 'byMapel'])->name('nilai.by-kelas-mapel');
 
         // Absensi (Attendance)
         Route::get('absensi', [SiswaAbsensiController::class, 'index'])->name('absensi.index');
-        Route::get('absensi/kelas/{kelasId}', [SiswaAbsensiController::class, 'byKelas'])->name('absensi.by-kelas');
+        Route::get('absensi/kelas/{kelasId}', [SiswaAbsensiController::class, 'byClass'])->name('absensi.by-kelas');
 
         // Diskusi (Discussions)
         Route::post('diskusi', [SiswaDiskusiController::class, 'store'])->name('diskusi.store');

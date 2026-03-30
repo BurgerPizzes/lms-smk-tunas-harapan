@@ -34,7 +34,7 @@ class AdminMapelController extends Controller
 
         $kategoris = ['normatif', 'adaptif', 'produktif'];
 
-        return view('admin.mapels.index', compact('mapels', 'kategoris'));
+        return view('admin.mapel.index', compact('mapels', 'kategoris'));
     }
 
     /**
@@ -44,7 +44,7 @@ class AdminMapelController extends Controller
     {
         $kategoris = ['normatif', 'adaptif', 'produktif'];
 
-        return view('admin.mapels.create', compact('kategoris'));
+        return view('admin.mapel.create', compact('kategoris'));
     }
 
     /**
@@ -66,7 +66,7 @@ class AdminMapelController extends Controller
         Mapel::create($validated);
 
         return redirect()
-            ->route('admin.mapels.index')
+            ->route('admin.mapel.index')
             ->with('success', 'Mata Pelajaran berhasil ditambahkan.');
     }
 
@@ -77,7 +77,7 @@ class AdminMapelController extends Controller
     {
         $mapel->load(['guruMapel.guru', 'guruMapel.kelas']);
 
-        return view('admin.mapels.show', compact('mapel'));
+        return view('admin.mapel.show', compact('mapel'));
     }
 
     /**
@@ -87,7 +87,7 @@ class AdminMapelController extends Controller
     {
         $kategoris = ['normatif', 'adaptif', 'produktif'];
 
-        return view('admin.mapels.edit', compact('mapel', 'kategoris'));
+        return view('admin.mapel.edit', compact('mapel', 'kategoris'));
     }
 
     /**
@@ -109,7 +109,7 @@ class AdminMapelController extends Controller
         $mapel->update($validated);
 
         return redirect()
-            ->route('admin.mapels.index')
+            ->route('admin.mapel.index')
             ->with('success', 'Mata Pelajaran berhasil diperbarui.');
     }
 
@@ -125,7 +125,7 @@ class AdminMapelController extends Controller
         $mapel->delete();
 
         return redirect()
-            ->route('admin.mapels.index')
+            ->route('admin.mapel.index')
             ->with('success', 'Mata Pelajaran berhasil dihapus.');
     }
 }

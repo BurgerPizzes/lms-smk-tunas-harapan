@@ -98,6 +98,11 @@ class Kelas extends Model
         return $this->hasMany(Quiz::class, 'class_id');
     }
 
+    public function guruMapel(): HasMany
+    {
+        return $this->hasMany(ClassGuruMapel::class, 'class_id');
+    }
+
     // ─── Accessors ────────────────────────────────────────────────
 
     public function getSiswaCountAttribute(): int

@@ -67,6 +67,11 @@ class Mapel extends Model
             ->withTimestamps();
     }
 
+    public function guruMapel(): HasMany
+    {
+        return $this->hasMany(ClassGuruMapel::class, 'mapel_id');
+    }
+
     // ─── Scopes ───────────────────────────────────────────────────
 
     public function scopeActive($query)
