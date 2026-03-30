@@ -159,7 +159,7 @@ function saveGrade(subId) {
     const nilai = form.querySelector(`input[name="nilai[${subId}]"]`)?.value;
     const feedback = form.querySelector(`textarea[name="feedback[${subId}]"]`)?.value;
     fetch('{{ route('guru.penilaian.grade', $tugas->id) }}', {
-        method: 'POST',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
         body: JSON.stringify({ submission_id: subId, nilai: nilai, feedback: feedback })
     }).then(r => r.json()).then(d => {

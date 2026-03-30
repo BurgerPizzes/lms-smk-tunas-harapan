@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Kelas;
 use App\Models\Mapel;
 use App\Models\Submission;
-use App\Models\Tugas;
 use Illuminate\Support\Facades\Auth;
 
 class SiswaNilaiController extends Controller
@@ -20,9 +19,11 @@ class SiswaNilaiController extends Controller
 
         $kelasList = $siswa->enrolledClasses()->orderBy('nama')->get();
 
-        $allGrades = [];
-        $totalNilai = 0;
-        $totalGraded = 0;
+        $kelasNilai = [];
+        $totalRataRata = 0;
+        $totalDinilai = 0;
+        $totalLulus = 0;
+        $kelasCount = 0;
 
         foreach ($kelasList as $kelas) {
             $submissions = Submission::where('siswa_id', $siswa->id)
@@ -37,29 +38,39 @@ class SiswaNilaiController extends Controller
                 ->map(function ($items) {
                     $graded = $items->whereNotNull('nilai');
                     return [
-                        'average'  => $graded->isNotEmpty() ? round($graded->avg('nilai'), 1) : null,
-                        'highest'  => $graded->max('nilai'),
-                        'lowest'   => $graded->min('nilai'),
-                        'count'    => $graded->count(),
+                        'nama_mapel' => $items->first()->tugas->mapel?->nama ?? 'Lainnya',
+                        'jumlah'     => $graded->count(),
+                        'rata_rata'  => $graded->isNotEmpty() ? round($graded->avg('nilai'), 1) : null,
                     ];
                 });
 
-            $totalForClass = $submissions->sum('nilai');
-            $countForClass = $submissions->count();
-            $totalNilai += $totalForClass;
-            $totalGraded += $countForClass;
+            $gradedCount = $submissions->count();
+            $classAvg = $gradedCount > 0 ? round($submissions->avg('nilai'), 1) : null;
 
-            $allGrades[] = [
-                'kelas'      => $kelas,
-                'mapel_grades' => $mapelGrades,
-                'class_avg'  => $countForClass > 0 ? round($totalForClass / $countForClass, 1) : null,
-                'total_submissions' => $countForClass,
+            if ($classAvg !== null) {
+                $totalRataRata += $classAvg;
+                $kelasCount++;
+            }
+            $totalDinilai += $gradedCount;
+            $totalLulus += $submissions->where('nilai', '>=', 75)->count();
+
+            $kelasNilai[] = [
+                'kelas_id'    => $kelas->id,
+                'nama_kelas'  => $kelas->nama,
+                'cover_color' => $kelas->cover_color,
+                'jumlah_nilai'=> $gradedCount,
+                'rata_rata'   => $classAvg,
+                'mapel'       => $mapelGrades->values()->toArray(),
             ];
         }
 
-        $overallAverage = $totalGraded > 0 ? round($totalNilai / $totalGraded, 1) : null;
+        $overallStats = [
+            'rata_rata'    => $kelasCount > 0 ? round($totalRataRata / $kelasCount, 1) : 0,
+            'total_dinilai'=> $totalDinilai,
+            'total_lulus'  => $totalLulus,
+        ];
 
-        return view('siswa.nilai.index', compact('allGrades', 'overallAverage'));
+        return view('siswa.nilai.index', compact('kelasNilai', 'overallStats'));
     }
 
     /**

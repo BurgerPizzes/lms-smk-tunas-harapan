@@ -104,7 +104,7 @@
                 </h2>
 
                 {{-- Comment Form --}}
-                <form action="{{ route('comments.store', [$kelas, $materi]) }}" method="POST" class="mb-6">
+                <form action="{{ route('comments.store') }}" method="POST" class="mb-6">
                     @csrf
                     <div class="flex gap-3">
                         <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold flex-shrink-0">

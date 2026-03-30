@@ -208,7 +208,7 @@
 </div>
 @endsection
 
-@section('custom-styles')
+@push('styles')
 <style>
     [x-cloak] { display: none !important; }
     .option-label:has(input:checked) {
@@ -220,7 +220,7 @@
         color: white;
     }
 </style>
-@endsection
+@endpush
 
 @push('scripts')
 <script>

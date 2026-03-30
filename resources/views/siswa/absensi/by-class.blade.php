@@ -16,7 +16,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-xl font-bold text-gray-900">{{ $kelas->nama_kelas }}</h1>
-                <p class="text-sm text-gray-500 mt-1">{{ $kelas->jurusan?->nama_jurusan }} • {{ $kelas->guru?->name }}</p>
+                <p class="text-sm text-gray-500 mt-1">{{ $kelas->jurusan?->nama }} • {{ $kelas->guru?->name }}</p>
             </div>
             <div class="flex gap-3">
                 @php

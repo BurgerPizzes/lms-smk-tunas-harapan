@@ -19,7 +19,7 @@ class SiswaAbsensiController extends Controller
 
         $kelasList = $siswa->enrolledClasses()->orderBy('nama')->get();
 
-        $attendanceData = $kelasList->map(function ($kelas) use ($siswa) {
+        $kelasAbsensi = $kelasList->map(function ($kelas) use ($siswa) {
             $details = AttendanceDetail::whereHas('attendance', function ($query) use ($kelas) {
                 $query->where('kelas_id', $kelas->id);
             })
@@ -29,13 +29,17 @@ class SiswaAbsensiController extends Controller
             $total = $details->count();
 
             return [
-                'kelas'      => $kelas,
-                'total'      => $total,
-                'hadir'      => $details->where('status', 'hadir')->count(),
-                'izin'       => $details->where('status', 'izin')->count(),
-                'sakit'      => $details->where('status', 'sakit')->count(),
-                'alpha'      => $details->where('status', 'alpha')->count(),
-                'persentase' => $total > 0
+                'kelas_id'         => $kelas->id,
+                'nama_kelas'       => $kelas->nama,
+                'cover_color'      => $kelas->cover_color,
+                'jurusan'          => $kelas->jurusan?->nama_jurusan ?? '',
+                'total'            => $total,
+                'total_pertemuan'  => $total,
+                'hadir'            => $details->where('status', 'hadir')->count(),
+                'izin'             => $details->where('status', 'izin')->count(),
+                'sakit'            => $details->where('status', 'sakit')->count(),
+                'alpha'            => $details->where('status', 'alpha')->count(),
+                'persentase'       => $total > 0
                     ? round(($details->where('status', 'hadir')->count() / $total) * 100, 1)
                     : 0,
             ];
@@ -44,7 +48,7 @@ class SiswaAbsensiController extends Controller
         // Overall summary
         $overallDetails = AttendanceDetail::where('siswa_id', $siswa->id)->get();
         $overallTotal = $overallDetails->count();
-        $overallData = [
+        $overallStats = [
             'total'      => $overallTotal,
             'hadir'      => $overallDetails->where('status', 'hadir')->count(),
             'izin'       => $overallDetails->where('status', 'izin')->count(),
@@ -55,7 +59,7 @@ class SiswaAbsensiController extends Controller
                 : 0,
         ];
 
-        return view('siswa.absensi.index', compact('attendanceData', 'overallData'));
+        return view('siswa.absensi.index', compact('kelasAbsensi', 'overallStats'));
     }
 
     /**

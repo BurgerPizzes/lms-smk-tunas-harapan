@@ -18,7 +18,7 @@
             <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-white/80">
                 <span class="flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                    {{ $kelas->jurusan?->nama_jurusan ?? '-' }}
+                    {{ $kelas->jurusan?->nama ?? '-' }}
                 </span>
                 <span class="flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -253,7 +253,7 @@
                 <div class="space-y-3">
                     <div class="flex items-center justify-between text-sm">
                         <span class="text-gray-500">Jurusan</span>
-                        <span class="font-medium text-gray-900">{{ $kelas->jurusan?->nama_jurusan ?? '-' }}</span>
+                        <span class="font-medium text-gray-900">{{ $kelas->jurusan?->nama ?? '-' }}</span>
                     </div>
                     <div class="flex items-center justify-between text-sm">
                         <span class="text-gray-500">Tahun Ajaran</span>

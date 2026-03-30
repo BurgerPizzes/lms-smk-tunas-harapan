@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+    @section('sidebar')@show
     <!-- Sidebar -->
     <aside id="sidebar" class="sidebar-transition fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-emerald-600 text-white z-40 flex flex-col -translate-x-full lg:translate-x-0 overflow-y-auto">
         <!-- School Info -->
