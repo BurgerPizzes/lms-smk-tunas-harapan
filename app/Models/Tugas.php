@@ -54,6 +54,14 @@ class Tugas extends Model
         return $this->belongsTo(User::class, 'guru_id');
     }
 
+    /**
+     * Alias for guru() — used by controllers that reference 'user'.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->guru();
+    }
+
     public function submissions(): HasMany
     {
         return $this->hasMany(Submission::class, 'tugas_id');

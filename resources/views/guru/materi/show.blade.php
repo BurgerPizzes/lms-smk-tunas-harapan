@@ -125,7 +125,7 @@
                 </h3>
             </div>
             <div class="p-5 border-b border-gray-200 dark:border-gray-700">
-                <form method="POST" action="{{ route('comments.store') $materi->id) }}">
+                <form method="POST" action="{{ route('comments.store') }}">
                     @csrf
                     <div class="flex items-start space-x-3">
                         <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/40 rounded-full flex items-center justify-center text-xs font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">

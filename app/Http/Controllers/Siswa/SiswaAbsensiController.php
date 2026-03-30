@@ -17,7 +17,7 @@ class SiswaAbsensiController extends Controller
     {
         $siswa = Auth::user();
 
-        $kelasList = $siswa->kelas()->orderBy('nama')->get();
+        $kelasList = $siswa->enrolledClasses()->orderBy('nama')->get();
 
         $attendanceData = $kelasList->map(function ($kelas) use ($siswa) {
             $details = AttendanceDetail::whereHas('attendance', function ($query) use ($kelas) {
@@ -112,7 +112,7 @@ class SiswaAbsensiController extends Controller
     {
         $siswa = Auth::user();
 
-        if (! $siswa->kelas()->where('kelas.id', $kelas->id)->exists()) {
+        if (! $siswa->enrolledClasses()->where('kelas.id', $kelas->id)->exists()) {
             abort(403, 'Anda tidak terdaftar di kelas ini.');
         }
     }

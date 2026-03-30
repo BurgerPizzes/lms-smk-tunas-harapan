@@ -13,7 +13,7 @@
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $tugas->judul }} &middot; {{ $tugas->mapel->nama ?? '-' }} &middot; {{ $tugas->kelas->nama ?? '-' }}</p>
     </div>
     <div class="flex items-center space-x-2">
-        <a href="{{ route('guru.penilaian.export', $tugas->id) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+        <a href="{{ route('guru.penilaian.export', [$tugas->class_id ?? $tugas->id, $tugas->mapel_id ?? 0]) }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
             <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
             Export CSV
         </a>
@@ -59,7 +59,7 @@
 
 <!-- Grading Table -->
 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-    <form method="POST" action="{{ route('guru.penilaian.bulk-store', $tugas->id) }}" id="grading-form">
+    <form method="POST" action="{{ route('guru.penilaian.grade-bulk', $tugas->id) }}" id="grading-form">
         @csrf
 
         <div class="overflow-x-auto">

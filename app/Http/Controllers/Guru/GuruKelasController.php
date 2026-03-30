@@ -33,8 +33,8 @@ class GuruKelasController extends Controller
      */
     public function create(): \Illuminate\View\View
     {
-        $jurusans = \App\Models\Jurusan::where('is_active', true)->orderBy('nama')->get();
-        $tahunAjaran = \App\Models\TahunAjaran::where('is_active', true)->first();
+        $jurusans = \App\Models\Jurusan::where('aktif', true)->orderBy('nama')->get();
+        $tahunAjaran = \App\Models\TahunAjaran::where('aktif', true)->first();
 
         return view('guru.kelas.create', compact('jurusans', 'tahunAjaran'));
     }
@@ -48,7 +48,7 @@ class GuruKelasController extends Controller
             'nama'        => ['required', 'string', 'max:255'],
             'jurusan_id'  => ['nullable', 'exists:jurusans,id'],
             'tingkat'     => ['required', 'string', 'max:10'],
-            'tahun_ajaran' => ['required', 'string', 'max:20'],
+            'tahun_ajaran_id' => ['nullable', 'exists:tahun_ajarans,id'],
             'deskripsi'   => ['nullable', 'string'],
         ]);
 
@@ -57,9 +57,9 @@ class GuruKelasController extends Controller
         $kelas = Kelas::create([
             'nama'         => $validated['nama'],
             'jurusan_id'   => $validated['jurusan_id'],
-            'wali_kelas_id' => $guru->id,
+            'guru_id'      => $guru->id,
             'tingkat'      => $validated['tingkat'],
-            'tahun_ajaran' => $validated['tahun_ajaran'],
+            'tahun_ajaran_id' => $validated['tahun_ajaran_id'] ?? null,
             'deskripsi'    => $validated['deskripsi'],
             'kode_unik'    => strtoupper(Str::random(8)),
             'is_active'    => true,
@@ -77,11 +77,11 @@ class GuruKelasController extends Controller
     {
         $this->authorizeGuruAccess($kelas);
 
-        $kelas->load(['jurusan', 'waliKelas', 'siswa']);
+        $kelas->load(['jurusan', 'waliKelas', 'siswas']);
 
         // Feed: Materi and Tugas combined as a timeline
         $materiFeed = Materi::where('kelas_id', $kelas->id)
-            ->with('mapel', 'user')
+            ->with('mapel', 'guru')
             ->latest()
             ->take(20)
             ->get()
@@ -90,12 +90,12 @@ class GuruKelasController extends Controller
                 'id'        => $item->id,
                 'title'     => $item->judul,
                 'mapel'     => $item->mapel?->nama,
-                'user_name' => $item->user?->name,
+                'user_name' => $item->guru?->name,
                 'created_at' => $item->created_at,
             ]);
 
         $tugasFeed = Tugas::where('kelas_id', $kelas->id)
-            ->with('mapel', 'user')
+            ->with('mapel', 'guru')
             ->latest()
             ->take(20)
             ->get()
@@ -104,7 +104,7 @@ class GuruKelasController extends Controller
                 'id'        => $item->id,
                 'title'     => $item->judul,
                 'mapel'     => $item->mapel?->nama,
-                'user_name' => $item->user?->name,
+                'user_name' => $item->guru?->name,
                 'created_at' => $item->created_at,
                 'deadline'  => $item->deadline,
             ]);
@@ -113,6 +113,19 @@ class GuruKelasController extends Controller
         $feed = $materiFeed->merge($tugasFeed)->sortByDesc('created_at')->values();
 
         return view('guru.kelas.show', compact('kelas', 'feed'));
+    }
+
+    /**
+     * Show the form for editing the specified class.
+     */
+    public function edit(Kelas $kelas): \Illuminate\View\View
+    {
+        $this->authorizeGuruAccess($kelas);
+
+        $jurusans = \App\Models\Jurusan::where('aktif', true)->orderBy('nama')->get();
+        $tahunAjarans = \App\Models\TahunAjaran::orderBy('tahun_mulai', 'desc')->get();
+
+        return view('guru.kelas.edit', compact('kelas', 'jurusans', 'tahunAjarans'));
     }
 
     /**
@@ -126,7 +139,7 @@ class GuruKelasController extends Controller
             'nama'        => ['required', 'string', 'max:255'],
             'jurusan_id'  => ['nullable', 'exists:jurusans,id'],
             'tingkat'     => ['required', 'string', 'max:10'],
-            'tahun_ajaran' => ['required', 'string', 'max:20'],
+            'tahun_ajaran_id' => ['nullable', 'exists:tahun_ajarans,id'],
             'deskripsi'   => ['nullable', 'string'],
         ]);
 
@@ -138,13 +151,27 @@ class GuruKelasController extends Controller
     }
 
     /**
+     * Remove the specified class from storage.
+     */
+    public function destroy(Kelas $kelas): \Illuminate\Http\RedirectResponse
+    {
+        $this->authorizeGuruAccess($kelas);
+
+        $kelas->delete();
+
+        return redirect()
+            ->route('guru.kelas.index')
+            ->with('success', 'Kelas berhasil dihapus.');
+    }
+
+    /**
      * View class members (siswa list).
      */
     public function members(Kelas $kelas): \Illuminate\View\View
     {
         $this->authorizeGuruAccess($kelas);
 
-        $siswa = $kelas->siswa()->orderBy('name')->paginate(20);
+        $siswa = $kelas->siswas()->orderBy('name')->paginate(20);
 
         return view('guru.kelas.members', compact('kelas', 'siswa'));
     }
@@ -156,11 +183,11 @@ class GuruKelasController extends Controller
     {
         $this->authorizeGuruAccess($kelas);
 
-        if (! $kelas->siswa()->where('users.id', $user->id)->exists()) {
+        if (! $kelas->siswas()->where('users.id', $user->id)->exists()) {
             return back()->withErrors('Siswa tidak ditemukan di kelas ini.');
         }
 
-        $kelas->siswa()->detach($user->id);
+        $kelas->siswas()->detach($user->id);
 
         return redirect()
             ->route('guru.kelas.members', $kelas)
@@ -177,7 +204,7 @@ class GuruKelasController extends Controller
             ->where('kelas_id', $kelas->id)
             ->exists();
 
-        if (! $hasAccess && $kelas->wali_kelas_id !== $guru->id) {
+        if (! $hasAccess && $kelas->guru_id !== $guru->id) {
             abort(403, 'Anda tidak memiliki akses ke kelas ini.');
         }
     }

@@ -82,7 +82,7 @@
                         {{ strtoupper(substr(auth()->user()->name ?? 'G', 0, 1)) }}
                     </div>
                     <div class="flex-1">
-                        <form method="POST" action="{{ route('diskusi.store') $kelas->id) }}">
+                        <form method="POST" action="{{ route('guru.diskusi.store') }}">
                             @csrf
                             <textarea name="pesan" rows="2" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none" placeholder="Bagikan pengumuman ke kelas..."></textarea>
                             <div class="flex items-center justify-end mt-2 space-x-2">

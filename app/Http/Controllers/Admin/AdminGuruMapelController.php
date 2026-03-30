@@ -37,14 +37,14 @@ class AdminGuruMapelController extends Controller
 
         $assignments = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
-        // Data for filters
-        $gurus = User::role('guru')->where('is_active', true)->orderBy('name')->get();
-        $mapels = Mapel::where('is_active', true)->orderBy('nama')->get();
+        // Data for filters (variable names match index view expectations)
+        $guruList = User::role('guru')->where('is_active', true)->orderBy('name')->get();
+        $mapelList = Mapel::where('is_active', true)->orderBy('nama')->get();
         $kelasList = Kelas::where('is_active', true)->orderBy('nama')->get();
-        $tahunAjarans = TahunAjaran::orderBy('tahun_mulai', 'desc')->get();
+        $tahunAjaranList = TahunAjaran::orderBy('tahun_mulai', 'desc')->get();
 
         return view('admin.guru-mapel.index', compact(
-            'assignments', 'gurus', 'mapels', 'kelasList', 'tahunAjarans'
+            'assignments', 'guruList', 'mapelList', 'kelasList', 'tahunAjaranList'
         ));
     }
 
@@ -92,6 +92,61 @@ class AdminGuruMapelController extends Controller
         return redirect()
             ->route('admin.guru-mapel.index')
             ->with('success', 'Pengampu mata pelajaran berhasil ditambahkan.');
+    }
+
+    /**
+     * Display the specified assignment.
+     */
+    public function show(ClassGuruMapel $classGuruMapel): \Illuminate\View\View
+    {
+        $classGuruMapel->load(['guru', 'mapel', 'kelas', 'tahunAjaran']);
+
+        return view('admin.guru-mapel.show', compact('classGuruMapel'));
+    }
+
+    /**
+     * Show the form for editing the specified assignment.
+     */
+    public function edit(ClassGuruMapel $classGuruMapel): \Illuminate\View\View
+    {
+        $gurus = User::role('guru')->where('is_active', true)->orderBy('name')->get();
+        $mapels = Mapel::where('is_active', true)->orderBy('nama')->get();
+        $kelasList = Kelas::where('is_active', true)->orderBy('nama')->get();
+        $tahunAjarans = TahunAjaran::orderBy('tahun_mulai', 'desc')->get();
+
+        return view('admin.guru-mapel.edit', compact(
+            'classGuruMapel', 'gurus', 'mapels', 'kelasList', 'tahunAjarans'
+        ));
+    }
+
+    /**
+     * Update the specified assignment in storage.
+     */
+    public function update(Request $request, ClassGuruMapel $classGuruMapel): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'guru_id'        => ['required', 'exists:users,id'],
+            'mapel_id'       => ['required', 'exists:mapels,id'],
+            'kelas_id'       => ['required', 'exists:kelas,id'],
+            'tahun_ajaran_id' => ['required', 'exists:tahun_ajarans,id'],
+        ]);
+
+        // Check for duplicate assignment (excluding current)
+        $exists = ClassGuruMapel::where($validated)
+            ->where('id', '!=', $classGuruMapel->id)
+            ->exists();
+
+        if ($exists) {
+            return back()
+                ->withErrors('Pengampu ini sudah ditugaskan untuk mata pelajaran, kelas, dan tahun ajaran tersebut.')
+                ->withInput();
+        }
+
+        $classGuruMapel->update($validated);
+
+        return redirect()
+            ->route('admin.guru-mapel.index')
+            ->with('success', 'Pengampu mata pelajaran berhasil diperbarui.');
     }
 
     /**

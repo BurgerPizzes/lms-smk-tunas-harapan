@@ -220,6 +220,7 @@
 
         <form method="POST" action="{{ route('profile.password') }}">
             @csrf
+            @method('PUT')
 
             <div class="space-y-5">
                 {{-- Current Password --}}

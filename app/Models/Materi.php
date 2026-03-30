@@ -53,6 +53,11 @@ class Materi extends Model
         return $this->belongsTo(User::class, 'guru_id');
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->guru();
+    }
+
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');

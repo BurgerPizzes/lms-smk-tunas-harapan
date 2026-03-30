@@ -51,7 +51,7 @@ class NotificationController extends Controller
     /**
      * Mark all notifications as read.
      */
-    public function markAllRead(Request $request): RedirectResponse|JsonResponse
+    public function markAllAsRead(Request $request): RedirectResponse|JsonResponse
     {
         $user = auth()->user();
 

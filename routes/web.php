@@ -175,7 +175,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/logs', [AdminController::class, 'logs'])->name('logs');
         Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
         Route::put('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
-        Route::get('/backup', [AdminController::class, 'backup'])->name('backup');
+        Route::get('/backup', [AdminController::class, 'showBackup'])->name('backup');
         Route::post('/backup', [AdminController::class, 'backup'])->name('backup.run');
         Route::post('/clear-cache', [AdminController::class, 'clearCache'])->name('clear-cache');
     });

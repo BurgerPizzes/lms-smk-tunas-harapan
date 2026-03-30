@@ -171,19 +171,19 @@ class AdminKelasController extends Controller
         $kelas->siswas()->syncWithoutDetaching($validated['user_ids']);
 
         return redirect()
-            ->route('admin.kelas.manage-enrollment', $kelas)
+            ->route('admin.kelas.members', $kelas)
             ->with('success', count($validated['user_ids']) . ' siswa berhasil didaftarkan.');
     }
 
     /**
      * Remove siswa from kelas.
      */
-    public function removeSiswa(Kelas $kelas, User $user): \Illuminate\Http\RedirectResponse
+    public function removeMember(Kelas $kelas, User $user): \Illuminate\Http\RedirectResponse
     {
         $kelas->siswas()->detach($user->id);
 
         return redirect()
-            ->route('admin.kelas.manage-enrollment', $kelas)
+            ->route('admin.kelas.members', $kelas)
             ->with('success', 'Siswa berhasil dikeluarkan dari kelas.');
     }
 

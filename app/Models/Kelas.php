@@ -52,6 +52,11 @@ class Kelas extends Model
         return $this->belongsTo(User::class, 'guru_id');
     }
 
+    public function guru(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'guru_id');
+    }
+
     public function materis(): HasMany
     {
         return $this->hasMany(Materi::class, 'class_id');
@@ -104,6 +109,34 @@ class Kelas extends Model
     }
 
     // ─── Accessors ────────────────────────────────────────────────
+
+    /**
+     * Alias: $kelas->nama_kelas maps to $kelas->nama
+     */
+    public function getNamaKelasAttribute(): string
+    {
+        return $this->attributes['nama'] ?? '';
+    }
+
+    public function getCoverColorAttribute(): string
+    {
+        return '#4F46E5';
+    }
+
+    public function getCoverColorSecondaryAttribute(): string
+    {
+        return '#7C3AED';
+    }
+
+    public function getTahunAjaranAttribute(): string
+    {
+        return $this->tahunAjaran?->tahun_ajaran ?? '-';
+    }
+
+    public function getSemesterAttribute(): string
+    {
+        return $this->tahunAjaran?->semester ?? '-';
+    }
 
     public function getSiswaCountAttribute(): int
     {

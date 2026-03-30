@@ -122,6 +122,6 @@ class AdminTahunAjaranController extends Controller
 
         return redirect()
             ->route('admin.tahun-ajaran.index')
-            ->with('success', 'Tahun Ajaran ' . $tahunAjaran->nama . ' berhasil diaktifkan.');
+            ->with('success', 'Tahun Ajaran ' . $tahunAjaran->tahun_mulai . '/' . $tahunAjaran->tahun_selesai . ' ' . ucfirst($tahunAjaran->semester) . ' berhasil diaktifkan.');
     }
 }

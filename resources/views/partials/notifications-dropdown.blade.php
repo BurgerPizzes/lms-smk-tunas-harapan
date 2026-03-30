@@ -38,9 +38,11 @@
         <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
             <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Notifikasi</h3>
             @if($unreadCount > 0)
-                <a href="{{ route('notifications.read-all') }}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium transition-colors">
-                    Tandai semua dibaca
-                </a>
+                <form method="POST" action="{{ route('notifications.read-all') }}" class="inline">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium transition-colors">Tandai semua dibaca</button>
+                </form>
             @endif
         </div>
 

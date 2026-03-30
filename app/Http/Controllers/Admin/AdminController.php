@@ -101,6 +101,29 @@ class AdminController extends Controller
     }
 
     /**
+     * Show the backup management page.
+     */
+    public function showBackup(): \Illuminate\View\View
+    {
+        $backupPath = storage_path('app/backups');
+        $backups = [];
+
+        if (File::isDirectory($backupPath)) {
+            $files = File::files($backupPath);
+            foreach ($files as $file) {
+                $backups[] = [
+                    'filename' => $file->getFilename(),
+                    'size'     => $this->formatBytes($file->getSize()),
+                    'modified' => $file->getMTime(),
+                ];
+            }
+            usort($backups, fn ($a, $b) => $b['modified'] <=> $a['modified']);
+        }
+
+        return view('admin.backup', compact('backups'));
+    }
+
+    /**
      * Create a database backup.
      */
     public function backup(): \Symfony\Component\HttpFoundation\BinaryFileResponse|\Illuminate\Http\RedirectResponse

@@ -14,8 +14,9 @@
             </p>
         </div>
 
-        <form method="POST" action="{{ route('notifications.mark-all-read') }}" class="flex-shrink-0">
+        <form method="POST" action="{{ route('notifications.read-all') }}" class="flex-shrink-0">
             @csrf
+            @method('PUT')
             <button type="submit"
                 class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
                 onclick="return confirm('Tandai semua notifikasi sebagai dibaca?')">
@@ -109,6 +110,7 @@
                 {{-- Mark as Read Form --}}
                 <form method="POST" action="{{ route('notifications.read', $notification->id) }}" class="notification-row {{ !$notification->is_read ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : '' }}">
                     @csrf
+                    @method('PUT')
                     <a href="{{ $notifLink }}"
                        onclick="this.closest('form').submit(); return true;"
                        class="flex items-start space-x-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors block no-underline">
