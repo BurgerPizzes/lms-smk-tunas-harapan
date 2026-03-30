@@ -27,20 +27,20 @@ class GuruDashboardController extends Controller
             ->get();
 
         // Class IDs for further queries
-        $kelasIds = $assignedClasses->pluck('kelas_id')->unique()->filter()->toArray();
+        $kelasIds = $assignedClasses->pluck('class_id')->unique()->filter()->toArray();
         $mapelIds = $assignedClasses->pluck('mapel_id')->unique()->filter()->toArray();
 
         // Upcoming deadlines (tugas that are still open and have ungraded submissions)
-        $upcomingDeadlines = Tugas::whereIn('kelas_id', $kelasIds)
+        $upcomingDeadlines = Tugas::whereIn('class_id', $kelasIds)
             ->where('deadline', '>=', now())
             ->orderBy('deadline')
             ->take(10)
             ->get();
 
         // Recent submissions that need grading
-        $recentSubmissions = Submission::with(['tugas', 'user'])
+        $recentSubmissions = Submission::with(['tugas', 'siswa'])
             ->whereHas('tugas', function ($query) use ($kelasIds, $mapelIds) {
-                $query->whereIn('kelas_id', $kelasIds)
+                $query->whereIn('class_id', $kelasIds)
                       ->whereIn('mapel_id', $mapelIds);
             })
             ->whereNull('nilai')
@@ -50,7 +50,7 @@ class GuruDashboardController extends Controller
 
         // Ungraded submissions count
         $ungradedCount = Submission::whereHas('tugas', function ($query) use ($kelasIds, $mapelIds) {
-            $query->whereIn('kelas_id', $kelasIds)
+            $query->whereIn('class_id', $kelasIds)
                   ->whereIn('mapel_id', $mapelIds);
         })
         ->whereNull('nilai')
@@ -74,7 +74,7 @@ class GuruDashboardController extends Controller
         $totalMateri = Materi::where('guru_id', $guru->id)->count();
 
         // Total tugas created
-        $totalTugas = Tugas::whereIn('kelas_id', $kelasIds)
+        $totalTugas = Tugas::whereIn('class_id', $kelasIds)
             ->whereIn('mapel_id', $mapelIds)
             ->count();
 

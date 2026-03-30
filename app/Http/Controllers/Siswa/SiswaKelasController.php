@@ -16,7 +16,7 @@ class SiswaKelasController extends Controller
     {
         $siswa = Auth::user();
 
-        $kelasList = $siswa->kelas()
+        $kelasList = $siswa->enrolledClasses()
             ->with(['jurusan', 'waliKelas'])
             ->orderBy('nama')
             ->paginate(12);
@@ -54,13 +54,13 @@ class SiswaKelasController extends Controller
         }
 
         // Check if already enrolled
-        if ($siswa->kelas()->where('kelas.id', $kelas->id)->exists()) {
+        if ($siswa->enrolledClasses()->where('kelas.id', $kelas->id)->exists()) {
             return back()
                 ->withErrors(['kode_unik' => 'Anda sudah terdaftar di kelas ini.'])
                 ->withInput();
         }
 
-        $siswa->kelas()->attach($kelas->id);
+        $siswa->enrolledClasses()->attach($kelas->id);
 
         return redirect()
             ->route('siswa.kelas.show', $kelas)
@@ -75,16 +75,16 @@ class SiswaKelasController extends Controller
         $siswa = Auth::user();
 
         // Verify enrollment
-        if (! $siswa->kelas()->where('kelas.id', $kelas->id)->exists()) {
+        if (! $siswa->enrolledClasses()->where('kelas.id', $kelas->id)->exists()) {
             abort(403, 'Anda tidak terdaftar di kelas ini.');
         }
 
         $kelas->load(['jurusan', 'waliKelas']);
 
         // Feed: Materi and Tugas timeline
-        $materiFeed = $kelas->materi()
+        $materiFeed = $kelas->materis()
             ->where('is_published', true)
-            ->with('mapel', 'user')
+            ->with('mapel', 'guru')
             ->latest()
             ->take(20)
             ->get()
@@ -93,13 +93,13 @@ class SiswaKelasController extends Controller
                 'id'         => $item->id,
                 'title'      => $item->judul,
                 'mapel'      => $item->mapel?->nama,
-                'user_name'  => $item->user?->name,
+                'user_name'  => $item->guru?->name,
                 'created_at' => $item->created_at,
             ]);
 
-        $tugasFeed = $kelas->tugas()
+        $tugasFeed = $kelas->tugases()
             ->where('is_published', true)
-            ->with('mapel', 'user')
+            ->with('mapel', 'guru')
             ->latest()
             ->take(20)
             ->get()
@@ -113,7 +113,7 @@ class SiswaKelasController extends Controller
                     'id'            => $item->id,
                     'title'         => $item->judul,
                     'mapel'         => $item->mapel?->nama,
-                    'user_name'     => $item->user?->name,
+                    'user_name'     => $item->guru?->name,
                     'created_at'    => $item->created_at,
                     'deadline'      => $item->deadline,
                     'is_submitted'  => $submission !== null,
@@ -135,11 +135,11 @@ class SiswaKelasController extends Controller
     {
         $siswa = Auth::user();
 
-        if (! $siswa->kelas()->where('kelas.id', $kelas->id)->exists()) {
+        if (! $siswa->enrolledClasses()->where('kelas.id', $kelas->id)->exists()) {
             return back()->withErrors('Anda tidak terdaftar di kelas ini.');
         }
 
-        $siswa->kelas()->detach($kelas->id);
+        $siswa->enrolledClasses()->detach($kelas->id);
 
         return redirect()
             ->route('siswa.kelas.index')

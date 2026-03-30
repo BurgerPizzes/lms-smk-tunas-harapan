@@ -35,16 +35,15 @@ class AdminTahunAjaranController extends Controller
             'tahun_mulai' => ['required', 'integer', 'min:2000', 'max:2100'],
             'tahun_selesai' => ['required', 'integer', 'min:2000', 'max:2100', 'gt:tahun_mulai'],
             'semester'   => ['required', 'string', 'in:ganjil,genap'],
-            'is_active'  => ['sometimes', 'boolean'],
-            'keterangan' => ['nullable', 'string', 'max:255'],
+            'aktif'      => ['sometimes', 'boolean'],
         ]);
 
         // Ensure only one active tahun ajaran
-        if ($request->boolean('is_active', false)) {
-            TahunAjaran::where('is_active', true)->update(['is_active' => false]);
-            $validated['is_active'] = true;
+        if ($request->boolean('aktif', false)) {
+            TahunAjaran::where('aktif', true)->update(['aktif' => false]);
+            $validated['aktif'] = true;
         } else {
-            $validated['is_active'] = false;
+            $validated['aktif'] = false;
         }
 
         TahunAjaran::create($validated);
@@ -71,19 +70,18 @@ class AdminTahunAjaranController extends Controller
             'tahun_mulai' => ['required', 'integer', 'min:2000', 'max:2100'],
             'tahun_selesai' => ['required', 'integer', 'min:2000', 'max:2100', 'gt:tahun_mulai'],
             'semester'   => ['required', 'string', 'in:ganjil,genap'],
-            'is_active'  => ['sometimes', 'boolean'],
-            'keterangan' => ['nullable', 'string', 'max:255'],
+            'aktif'      => ['sometimes', 'boolean'],
         ]);
 
         // Ensure only one active tahun ajaran
-        if ($request->boolean('is_active', false)) {
-            TahunAjaran::where('is_active', true)
+        if ($request->boolean('aktif', false)) {
+            TahunAjaran::where('aktif', true)
                 ->where('id', '!=', $tahunAjaran->id)
-                ->update(['is_active' => false]);
-            $validated['is_active'] = true;
+                ->update(['aktif' => false]);
+            $validated['aktif'] = true;
         } else {
             // Prevent deactivating if this is the only active one
-            $validated['is_active'] = $tahunAjaran->is_active;
+            $validated['aktif'] = $tahunAjaran->aktif;
         }
 
         $tahunAjaran->update($validated);
@@ -98,7 +96,7 @@ class AdminTahunAjaranController extends Controller
      */
     public function destroy(TahunAjaran $tahunAjaran): \Illuminate\Http\RedirectResponse
     {
-        if ($tahunAjaran->is_active) {
+        if ($tahunAjaran->aktif) {
             return back()->withErrors('Tahun Ajaran aktif tidak dapat dihapus. Nonaktifkan terlebih dahulu.');
         }
 
@@ -118,9 +116,9 @@ class AdminTahunAjaranController extends Controller
      */
     public function setActive(TahunAjaran $tahunAjaran): \Illuminate\Http\RedirectResponse
     {
-        TahunAjaran::where('is_active', true)->update(['is_active' => false]);
+        TahunAjaran::where('aktif', true)->update(['aktif' => false]);
 
-        $tahunAjaran->update(['is_active' => true]);
+        $tahunAjaran->update(['aktif' => true]);
 
         return redirect()
             ->route('admin.tahun-ajaran.index')

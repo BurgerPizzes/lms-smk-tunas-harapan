@@ -50,12 +50,6 @@ class ProfileController extends Controller
             ]));
         }
 
-        // Map nip to nis_nip
-        if (isset($validated['nip'])) {
-            $validated['nis_nip'] = $validated['nip'];
-            unset($validated['nip']);
-        }
-
         $user->update($validated);
 
         return back()->with('success', 'Profil berhasil diperbarui.');
@@ -95,8 +89,8 @@ class ProfileController extends Controller
         ]);
 
         // Delete old photo
-        if ($user->photo) {
-            Storage::disk('public')->delete($user->photo);
+        if ($user->foto) {
+            Storage::disk('public')->delete($user->foto);
         }
 
         $file = $validated['photo'];
@@ -104,7 +98,7 @@ class ProfileController extends Controller
         $path = $file->storeAs('profiles', $filename, 'public');
 
         $user->update([
-            'photo' => $path,
+            'foto' => $path,
         ]);
 
         return back()->with('success', 'Foto profil berhasil diperbarui.');
@@ -117,9 +111,9 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->photo) {
-            Storage::disk('public')->delete($user->photo);
-            $user->update(['photo' => null]);
+        if ($user->foto) {
+            Storage::disk('public')->delete($user->foto);
+            $user->update(['foto' => null]);
         }
 
         return back()->with('success', 'Foto profil berhasil dihapus.');

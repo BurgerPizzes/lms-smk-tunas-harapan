@@ -19,10 +19,10 @@ class ApiKelasController extends Controller
         $query = Kelas::query()->with(['jurusan', 'waliKelas']);
 
         if ($user->hasRole('siswa')) {
-            $query->whereHas('siswa', fn ($q) => $q->where('users.id', $user->id));
+            $query->whereHas('siswas', fn ($q) => $q->where('users.id', $user->id));
         } elseif ($user->hasRole('guru')) {
             $query->whereHas('guruMapel', fn ($q) => $q->where('guru_id', $user->id))
-                  ->orWhere('wali_kelas_id', $user->id);
+                  ->orWhere('guru_id', $user->id);
         }
 
         if ($request->filled('search')) {
@@ -47,14 +47,14 @@ class ApiKelasController extends Controller
 
         // Verify access
         if ($user->hasRole('siswa')) {
-            if (! $kelas->siswa()->where('users.id', $user->id)->exists()) {
+            if (! $kelas->siswas()->where('users.id', $user->id)->exists()) {
                 return response()->json(['message' => 'Anda tidak terdaftar di kelas ini.'], 403);
             }
         }
 
         $kelas->load(['jurusan', 'waliKelas', 'guruMapel.mapel', 'guruMapel.guru']);
 
-        $memberCount = $kelas->siswa()->count();
+        $memberCount = $kelas->siswas()->count();
 
         return response()->json([
             'success' => true,
@@ -72,7 +72,7 @@ class ApiKelasController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasRole('guru')) {
+        if (! $user->hasRole('guru')) {
             return response()->json(['message' => 'Hanya guru yang dapat membuat kelas.'], 403);
         }
 
@@ -84,7 +84,7 @@ class ApiKelasController extends Controller
             'deskripsi'    => ['nullable', 'string'],
         ]);
 
-        $validated['wali_kelas_id'] = $user->id;
+        $validated['guru_id'] = $user->id;
         $validated['kode_unik'] = strtoupper(\Illuminate\Support\Str::random(8));
         $validated['is_active'] = true;
 
@@ -104,7 +104,7 @@ class ApiKelasController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasRole('siswa')) {
+        if (! $user->hasRole('siswa')) {
             return response()->json(['message' => 'Hanya siswa yang dapat bergabung ke kelas.'], 403);
         }
 
@@ -122,13 +122,13 @@ class ApiKelasController extends Controller
             ], 404);
         }
 
-        if ($user->kelas()->where('kelas.id', $kelas->id)->exists()) {
+        if ($user->enrolledClasses()->where('kelas.id', $kelas->id)->exists()) {
             return response()->json([
                 'message' => 'Anda sudah terdaftar di kelas ini.',
             ], 422);
         }
 
-        $user->kelas()->attach($kelas->id);
+        $user->enrolledClasses()->attach($kelas->id);
 
         return response()->json([
             'success' => true,

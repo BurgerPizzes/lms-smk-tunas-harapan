@@ -23,7 +23,7 @@ class SiswaQuizController extends Controller
 
         $siswa = Auth::user();
 
-        $query = Quiz::where('kelas_id', $kelas->id)
+        $query = Quiz::where('class_id', $kelas->id)
             ->where('is_published', true)
             ->with('mapel');
 
@@ -31,7 +31,7 @@ class SiswaQuizController extends Controller
             $query->where('mapel_id', $request->input('mapel_id'));
         }
 
-        $quizzes = $query->orderBy('waktu_mulai', 'desc')
+        $quizzes = $query->orderBy('mulai_at', 'desc')
             ->paginate(15)
             ->withQueryString();
 
@@ -44,15 +44,15 @@ class SiswaQuizController extends Controller
 
             $quiz->attempt = $attempt;
             $quiz->has_attempt = $attempt !== null;
-            $quiz->is_active = $quiz->waktu_mulai <= now() && $quiz->waktu_selesai >= now();
-            $quiz->is_upcoming = $quiz->waktu_mulai > now();
-            $quiz->is_ended = $quiz->waktu_selesai < now();
+            $quiz->is_active = $quiz->mulai_at && $quiz->mulai_at <= now() && $quiz->selesai_at && $quiz->selesai_at >= now();
+            $quiz->is_upcoming = $quiz->mulai_at && $quiz->mulai_at > now();
+            $quiz->is_ended = $quiz->selesai_at && $quiz->selesai_at < now();
 
             return $quiz;
         });
 
         $mapels = \App\Models\Mapel::whereHas('quiz', function ($query) use ($kelas) {
-            $query->where('kelas_id', $kelas->id)->where('is_published', true);
+            $query->where('class_id', $kelas->id)->where('is_published', true);
         })->orderBy('nama')->get();
 
         return view('siswa.quiz.index', compact('kelas', 'quizzes', 'mapels'));
@@ -67,18 +67,18 @@ class SiswaQuizController extends Controller
         $siswa = Auth::user();
 
         // Check if quiz is active
-        if ($quiz->waktu_mulai > now()) {
+        if ($quiz->mulai_at && $quiz->mulai_at > now()) {
             return back()->withErrors('Quiz belum dimulai.');
         }
 
-        if ($quiz->waktu_selesai < now()) {
+        if ($quiz->selesai_at && $quiz->selesai_at < now()) {
             return back()->withErrors('Quiz telah berakhir.');
         }
 
         // Check if there's already a pending attempt
         $pendingAttempt = QuizAttempt::where('quiz_id', $quiz->id)
             ->where('siswa_id', $siswa->id)
-            ->where('status', 'in_progress')
+            ->where('status', 'dikerjakan')
             ->first();
 
         if ($pendingAttempt) {
@@ -95,11 +95,10 @@ class SiswaQuizController extends Controller
         DB::beginTransaction();
         try {
             $attempt = QuizAttempt::create([
-                'quiz_id'   => $quiz->id,
-                'siswa_id' => $siswa->id,
-                'status'    => 'in_progress',
-                'started_at' => now(),
-                'waktu_selesai' => now()->addMinutes($quiz->durasi_menit),
+                'quiz_id'     => $quiz->id,
+                'siswa_id'   => $siswa->id,
+                'status'      => 'dikerjakan',
+                'waktu_mulai' => now(),
             ]);
 
             DB::commit();
@@ -125,29 +124,25 @@ class SiswaQuizController extends Controller
         $siswa = Auth::user();
         $attempt = QuizAttempt::where('id', $validated['attempt_id'])
             ->where('siswa_id', $siswa->id)
-            ->where('status', 'in_progress')
+            ->where('status', 'dikerjakan')
             ->firstOrFail();
 
         // Check time limit
-        if ($attempt->waktu_selesai && $attempt->waktu_selesai < now()) {
+        $timeRemaining = $this->getTimeRemaining($attempt, $attempt->quiz);
+        if ($timeRemaining !== null && $timeRemaining <= 0) {
             return response()->json(['error' => 'Waktu quiz telah berakhir.'], 403);
         }
 
-        // Upsert answer
-        QuizAttempt::updateOrCreate(
+        // Upsert answer via QuizAnswer
+        QuizAnswer::updateOrCreate(
             [
-                'attempt_id'  => $attempt->id,
-                'question_id' => $validated['question_id'],
+                'quiz_attempt_id'  => $attempt->id,
+                'quiz_question_id' => $validated['question_id'],
             ],
             [
                 'jawaban' => $validated['jawaban'],
             ]
         );
-
-        // Update time remaining
-        $timeRemaining = $attempt->waktu_selesai
-            ? max(0, now()->diffInSeconds($attempt->waktu_selesai))
-            : $attempt->quiz->durasi_menit * 60;
 
         return response()->json([
             'message'        => 'Jawaban berhasil disimpan.',
@@ -162,11 +157,11 @@ class SiswaQuizController extends Controller
     {
         $siswa = Auth::user();
 
-        if ($attempt->user_id !== $siswa->id) {
+        if ($attempt->siswa_id !== $siswa->id) {
             abort(403, 'Anda tidak memiliki akses ke attempt ini.');
         }
 
-        if ($attempt->status !== 'in_progress') {
+        if ($attempt->status !== 'dikerjakan') {
             return redirect()->route('siswa.quiz.result', $attempt)
                 ->with('info', 'Quiz sudah selesai.');
         }
@@ -175,8 +170,8 @@ class SiswaQuizController extends Controller
         try {
             // Auto-submit if time is up
             $attempt->update([
-                'status'     => 'completed',
-                'finished_at' => now(),
+                'status'        => 'selesai',
+                'waktu_selesai' => now(),
             ]);
 
             // Calculate score (only for non-essay questions)
@@ -199,18 +194,20 @@ class SiswaQuizController extends Controller
     {
         $siswa = Auth::user();
 
-        if ($attempt->user_id !== $siswa->id) {
+        if ($attempt->siswa_id !== $siswa->id) {
             abort(403, 'Anda tidak memiliki akses ke hasil ini.');
         }
 
         $attempt->load([
             'quiz.kelas',
             'quiz.mapel',
-            'answers.question',
         ]);
 
+        // Load quiz answers
+        $attempt->load('answers.question');
+
         // Only show pembahasan if enabled
-        $showPembahasan = $attempt->quiz->tampilkan_nilai;
+        $showPembahasan = $attempt->quiz->show_result;
 
         return view('siswa.quiz.result', compact('attempt', 'showPembahasan'));
     }
@@ -220,47 +217,36 @@ class SiswaQuizController extends Controller
      */
     private function showQuizPage(Quiz $quiz, QuizAttempt $attempt): \Illuminate\View\View
     {
-        $questions = $quiz->questions()->orderBy('nomor')->get();
+        $questions = $quiz->questions()->orderBy('urutan')->get();
 
         // Shuffle questions if configured
-        if ($quiz->acak_soal) {
+        if ($quiz->random_soal) {
             $questions = $questions->shuffle();
         }
 
-        // Shuffle options if configured
-        if ($quiz->acak_pilihan) {
-            $questions = $questions->map(function ($q) {
-                if (in_array($q->tipe, ['pg_4', 'pg_5'])) {
-                    $options = collect([
-                        ['key' => 'A', 'text' => $q->pilihan_a],
-                        ['key' => 'B', 'text' => $q->pilihan_b],
-                        ['key' => 'C', 'text' => $q->pilihan_c],
-                        ['key' => 'D', 'text' => $q->pilihan_d],
-                    ]);
-
-                    if ($q->tipe === 'pg_5') {
-                        $options->push(['key' => 'E', 'text' => $q->pilihan_e]);
-                    }
-
-                    $shuffled = $options->shuffle();
-                    $q->shuffled_options = $shuffled;
-                }
-                return $q;
-            });
-        }
-
         // Load existing answers
-        $existingAnswers = QuizAttempt::where('attempt_id', $attempt->id)
+        $existingAnswers = QuizAnswer::where('quiz_attempt_id', $attempt->id)
             ->get()
-            ->keyBy('question_id');
+            ->keyBy('quiz_question_id');
 
-        $timeRemaining = $attempt->waktu_selesai
-            ? max(0, now()->diffInSeconds($attempt->waktu_selesai))
-            : $quiz->durasi_menit * 60;
+        $timeRemaining = $this->getTimeRemaining($attempt, $quiz);
 
         return view('siswa.quiz.take', compact(
             'quiz', 'attempt', 'questions', 'existingAnswers', 'timeRemaining'
         ));
+    }
+
+    /**
+     * Calculate time remaining for a quiz attempt.
+     */
+    private function getTimeRemaining(QuizAttempt $attempt, Quiz $quiz): ?int
+    {
+        if ($attempt->waktu_mulai) {
+            $quizDuration = $quiz->durasi_menit * 60;
+            $elapsed = now()->diffInSeconds($attempt->waktu_mulai);
+            return max(0, $quizDuration - $elapsed);
+        }
+        return $quiz->durasi_menit * 60;
     }
 
     /**
@@ -269,26 +255,25 @@ class SiswaQuizController extends Controller
     private function calculateScore(QuizAttempt $attempt): void
     {
         $questions = $attempt->quiz->questions;
-        $answers = $attempt->answers->keyBy('question_id');
+        $answers = QuizAnswer::where('quiz_attempt_id', $attempt->id)->get()->keyBy('quiz_question_id');
 
         $totalBenar = 0;
-        $totalBobot = 0;
-        $totalBobotBenar = 0;
+        $totalPoin = 0;
+        $totalPoinBenar = 0;
 
         foreach ($questions as $question) {
-            $totalBobot += $question->bobot;
+            $totalPoin += $question->poin;
             $answer = $answers->get($question->id);
 
             if ($answer) {
                 $isCorrect = false;
 
                 switch ($question->tipe) {
-                    case 'pg_4':
-                    case 'pg_5':
-                        $isCorrect = strtoupper(trim($answer->jawaban)) === strtoupper(trim($question->jawaban));
+                    case 'pilihan_ganda':
+                        $isCorrect = strtoupper(trim($answer->jawaban)) === strtoupper(trim($question->jawaban_benar));
                         break;
-                    case 'benar_salah':
-                        $isCorrect = strtolower(trim($answer->jawaban)) === strtolower(trim($question->jawaban));
+                    case 'true_false':
+                        $isCorrect = strtolower(trim($answer->jawaban)) === strtolower(trim($question->jawaban_benar));
                         break;
                     case 'essay':
                         // Essay needs manual grading, skip
@@ -297,10 +282,10 @@ class SiswaQuizController extends Controller
 
                 if ($isCorrect) {
                     $totalBenar++;
-                    $totalBobotBenar += $question->bobot;
-                    $answer->update(['is_correct' => true]);
+                    $totalPoinBenar += $question->poin;
+                    $answer->update(['benar' => true]);
                 } else {
-                    $answer->update(['is_correct' => false]);
+                    $answer->update(['benar' => false]);
                 }
             }
         }
@@ -308,14 +293,15 @@ class SiswaQuizController extends Controller
         // Check if all questions are non-essay (auto-grade)
         $hasEssay = $questions->contains(fn ($q) => $q->tipe === 'essay');
 
-        $nilai = $totalBobot > 0
-            ? round(($totalBobotBenar / $totalBobot) * 100, 1)
+        $skor = $totalPoin > 0
+            ? round(($totalPoinBenar / $totalPoin) * 100, 1)
             : 0;
 
         $attempt->update([
             'total_benar' => $totalBenar,
+            'total_salah' => $questions->count() - $totalBenar,
             'total_soal'  => $questions->count(),
-            'nilai'       => $hasEssay ? null : $nilai,
+            'skor'        => $hasEssay ? null : $skor,
         ]);
     }
 
@@ -326,7 +312,7 @@ class SiswaQuizController extends Controller
     {
         $siswa = Auth::user();
 
-        if (! $siswa->kelas()->where('kelas.id', $kelas->id)->exists()) {
+        if (! $siswa->enrolledClasses()->where('kelas.id', $kelas->id)->exists()) {
             abort(403, 'Anda tidak terdaftar di kelas ini.');
         }
     }

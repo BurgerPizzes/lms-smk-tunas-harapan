@@ -8,6 +8,7 @@ use App\Models\Kelas;
 use App\Models\Mapel;
 use App\Models\Materi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -20,7 +21,7 @@ class GuruMateriController extends Controller
     {
         $this->authorizeGuruAccess($kelas);
 
-        $query = Materi::where('kelas_id', $kelas->id)->with('mapel', 'user');
+        $query = Materi::where('class_id', $kelas->id)->with('mapel', 'guru');
 
         if ($request->filled('mapel_id')) {
             $query->where('mapel_id', $request->input('mapel_id'));
@@ -35,7 +36,7 @@ class GuruMateriController extends Controller
 
         // Mapel options for filter
         $mapels = Mapel::whereHas('guruMapel', function ($query) use ($kelas) {
-            $query->where('kelas_id', $kelas->id);
+            $query->where('class_id', $kelas->id);
         })->orderBy('nama')->get();
 
         return view('guru.materi.index', compact('kelas', 'materis', 'mapels'));
@@ -49,7 +50,7 @@ class GuruMateriController extends Controller
         $this->authorizeGuruAccess($kelas);
 
         $mapels = Mapel::whereHas('guruMapel', function ($query) use ($kelas) {
-            $query->where('kelas_id', $kelas->id)
+            $query->where('class_id', $kelas->id)
                   ->where('guru_id', Auth::id());
         })->orderBy('nama')->get();
 
@@ -72,12 +73,12 @@ class GuruMateriController extends Controller
             'is_published' => ['sometimes', 'boolean'],
         ]);
 
-        $validated['kelas_id'] = $kelas->id;
-        $validated['user_id']  = Auth::id();
+        $validated['class_id'] = $kelas->id;
+        $validated['guru_id']  = Auth::id();
         $validated['is_published'] = $request->boolean('is_published', true);
 
         // Determine next order
-        $lastOrder = Materi::where('kelas_id', $kelas->id)->max('urutan') ?? 0;
+        $lastOrder = Materi::where('class_id', $kelas->id)->max('urutan') ?? 0;
         $validated['urutan'] = $lastOrder + 1;
 
         // Handle file upload
@@ -86,8 +87,6 @@ class GuruMateriController extends Controller
             $filename = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('materi/' . $kelas->id, $filename, 'public');
             $validated['file_path'] = $path;
-            $validated['file_name'] = $file->getClientOriginalName();
-            $validated['file_size'] = $file->getSize();
         }
 
         Materi::create($validated);
@@ -104,7 +103,7 @@ class GuruMateriController extends Controller
     {
         $this->authorizeGuruAccess($materi->kelas);
 
-        $materi->load(['kelas', 'mapel', 'user', 'comments.user']);
+        $materi->load(['kelas', 'mapel', 'guru', 'comments.user']);
 
         return view('guru.materi.show', compact('materi'));
     }
@@ -119,7 +118,7 @@ class GuruMateriController extends Controller
         $materi->load('kelas');
 
         $mapels = Mapel::whereHas('guruMapel', function ($query) use ($materi) {
-            $query->where('kelas_id', $materi->kelas_id)
+            $query->where('class_id', $materi->class_id)
                   ->where('guru_id', Auth::id());
         })->orderBy('nama')->get();
 
@@ -153,10 +152,8 @@ class GuruMateriController extends Controller
 
             $file = $request->file('file');
             $filename = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('materi/' . $materi->kelas_id, $filename, 'public');
+            $path = $file->storeAs('materi/' . $materi->class_id, $filename, 'public');
             $validated['file_path'] = $path;
-            $validated['file_name'] = $file->getClientOriginalName();
-            $validated['file_size'] = $file->getSize();
         }
 
         $materi->update($validated);
@@ -181,7 +178,7 @@ class GuruMateriController extends Controller
         $materi->delete();
 
         return redirect()
-            ->route('guru.materi.index', $materi->kelas_id)
+            ->route('guru.materi.index', $materi->kelas)
             ->with('success', 'Materi berhasil dihapus.');
     }
 
@@ -226,10 +223,10 @@ class GuruMateriController extends Controller
     {
         $guru = auth()->user();
         $hasAccess = GuruMapel::where('guru_id', $guru->id)
-            ->where('kelas_id', $kelas->id)
+            ->where('class_id', $kelas->id)
             ->exists();
 
-        if (! $hasAccess && $kelas->wali_kelas_id !== $guru->id) {
+        if (! $hasAccess && $kelas->guru_id !== $guru->id) {
             abort(403, 'Anda tidak memiliki akses ke kelas ini.');
         }
     }

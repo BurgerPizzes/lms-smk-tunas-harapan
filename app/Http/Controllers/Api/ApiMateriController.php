@@ -17,11 +17,11 @@ class ApiMateriController extends Controller
      */
     public function index(Request $request, Kelas $kelas): JsonResponse
     {
-        $query = Materi::where('kelas_id', $kelas->id)
-            ->with('mapel', 'user');
+        $query = Materi::where('class_id', $kelas->id)
+            ->with('mapel', 'guru');
 
         // Siswa only sees published materi
-        if ($request->user()->role === 'siswa') {
+        if ($request->user()->hasRole('siswa')) {
             $query->where('is_published', true);
         }
 
@@ -47,11 +47,11 @@ class ApiMateriController extends Controller
      */
     public function show(Request $request, Materi $materi): JsonResponse
     {
-        if ($request->user()->role === 'siswa' && ! $materi->is_published) {
+        if ($request->user()->hasRole('siswa') && ! $materi->is_published) {
             return response()->json(['message' => 'Materi tidak ditemukan.'], 404);
         }
 
-        $materi->load(['kelas', 'mapel', 'user', 'comments.user']);
+        $materi->load(['kelas', 'mapel', 'guru', 'comments.user']);
 
         return response()->json([
             'success' => true,
@@ -66,12 +66,12 @@ class ApiMateriController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasRole('guru')) {
+        if (! $user->hasRole('guru')) {
             return response()->json(['message' => 'Hanya guru yang dapat membuat materi.'], 403);
         }
 
         $validated = $request->validate([
-            'kelas_id'     => ['required', 'exists:kelas,id'],
+            'class_id'     => ['required', 'exists:kelas,id'],
             'judul'        => ['required', 'string', 'max:255'],
             'mapel_id'     => ['required', 'exists:mapels,id'],
             'konten'       => ['required', 'string'],
@@ -80,18 +80,16 @@ class ApiMateriController extends Controller
             'is_published' => ['boolean'],
         ]);
 
-        $validated['user_id'] = $user->id;
+        $validated['guru_id'] = $user->id;
         $validated['is_published'] = $validated['is_published'] ?? true;
-        $validated['urutan'] = Materi::where('kelas_id', $validated['kelas_id'])->max('urutan') + 1;
+        $validated['urutan'] = Materi::where('class_id', $validated['class_id'])->max('urutan') + 1;
 
         // Handle file
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $filename = time() . '_' . \Illuminate\Support\Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('materi/' . $validated['kelas_id'], $filename, 'public');
+            $path = $file->storeAs('materi/' . $validated['class_id'], $filename, 'public');
             $validated['file_path'] = $path;
-            $validated['file_name'] = $file->getClientOriginalName();
-            $validated['file_size'] = $file->getSize();
         }
 
         $materi = Materi::create($validated);
@@ -110,7 +108,7 @@ class ApiMateriController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasRole('guru') || $materi->guru_id !== $user->id) {
+        if (! $user->hasRole('guru') || $materi->guru_id !== $user->id) {
             return response()->json(['message' => 'Anda tidak memiliki izin.'], 403);
         }
 
@@ -129,10 +127,8 @@ class ApiMateriController extends Controller
             }
             $file = $request->file('file');
             $filename = time() . '_' . \Illuminate\Support\Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('materi/' . $materi->kelas_id, $filename, 'public');
+            $path = $file->storeAs('materi/' . $materi->class_id, $filename, 'public');
             $validated['file_path'] = $path;
-            $validated['file_name'] = $file->getClientOriginalName();
-            $validated['file_size'] = $file->getSize();
         }
 
         $materi->update($validated);
@@ -151,7 +147,7 @@ class ApiMateriController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasRole('guru') || $materi->guru_id !== $user->id) {
+        if (! $user->hasRole('guru') || $materi->guru_id !== $user->id) {
             return response()->json(['message' => 'Anda tidak memiliki izin.'], 403);
         }
 

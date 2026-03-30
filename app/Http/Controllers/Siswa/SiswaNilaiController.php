@@ -18,7 +18,7 @@ class SiswaNilaiController extends Controller
     {
         $siswa = Auth::user();
 
-        $kelasList = $siswa->kelas()->orderBy('nama')->get();
+        $kelasList = $siswa->enrolledClasses()->orderBy('nama')->get();
 
         $allGrades = [];
         $totalNilai = 0;
@@ -27,7 +27,7 @@ class SiswaNilaiController extends Controller
         foreach ($kelasList as $kelas) {
             $submissions = Submission::where('siswa_id', $siswa->id)
                 ->whereHas('tugas', function ($query) use ($kelas) {
-                    $query->where('kelas_id', $kelas->id);
+                    $query->where('class_id', $kelas->id);
                 })
                 ->whereNotNull('nilai')
                 ->with('tugas.mapel')
@@ -73,11 +73,11 @@ class SiswaNilaiController extends Controller
 
         $submissions = Submission::where('siswa_id', $siswa->id)
             ->whereHas('tugas', function ($query) use ($kelas) {
-                $query->where('kelas_id', $kelas->id);
+                $query->where('class_id', $kelas->id);
             })
             ->whereNotNull('nilai')
             ->with('tugas.mapel')
-            ->latest('graded_at')
+            ->latest('submitted_at')
             ->get();
 
         $mapelGrades = $submissions->groupBy(fn ($s) => $s->tugas->mapel?->nama ?? 'Lainnya')
@@ -111,11 +111,11 @@ class SiswaNilaiController extends Controller
 
         $submissions = Submission::where('siswa_id', $siswa->id)
             ->whereHas('tugas', function ($query) use ($kelas, $mapel) {
-                $query->where('kelas_id', $kelas->id)
+                $query->where('class_id', $kelas->id)
                       ->where('mapel_id', $mapel->id);
             })
             ->with('tugas')
-            ->latest('graded_at')
+            ->latest('submitted_at')
             ->get();
 
         $gradedSubmissions = $submissions->whereNotNull('nilai');
@@ -140,7 +140,7 @@ class SiswaNilaiController extends Controller
     {
         $siswa = Auth::user();
 
-        if (! $siswa->kelas()->where('kelas.id', $kelas->id)->exists()) {
+        if (! $siswa->enrolledClasses()->where('kelas.id', $kelas->id)->exists()) {
             abort(403, 'Anda tidak terdaftar di kelas ini.');
         }
     }

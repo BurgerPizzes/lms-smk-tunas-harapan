@@ -21,7 +21,7 @@ class SiswaTugasController extends Controller
 
         $siswa = Auth::user();
 
-        $query = Tugas::where('kelas_id', $kelas->id)
+        $query = Tugas::where('class_id', $kelas->id)
             ->where('is_published', true)
             ->with(['mapel']);
 
@@ -35,7 +35,7 @@ class SiswaTugasController extends Controller
                 $q->where('siswa_id', $siswa->id);
                 if ($status === 'submitted') {
                     $q->whereNotNull('file_path')
-                      ->orWhereNotNull('jawaban');
+                      ->orWhereNotNull('konten');
                 } elseif ($status === 'graded') {
                     $q->whereNotNull('nilai');
                 } elseif ($status === 'not_submitted') {
@@ -63,7 +63,7 @@ class SiswaTugasController extends Controller
         });
 
         $mapels = \App\Models\Mapel::whereHas('tugas', function ($query) use ($kelas) {
-            $query->where('kelas_id', $kelas->id)->where('is_published', true);
+            $query->where('class_id', $kelas->id)->where('is_published', true);
         })->orderBy('nama')->get();
 
         return view('siswa.tugas.index', compact('kelas', 'tugasList', 'mapels'));
@@ -78,7 +78,7 @@ class SiswaTugasController extends Controller
 
         $siswa = Auth::user();
 
-        $tugas->load(['kelas', 'mapel', 'user']);
+        $tugas->load(['kelas', 'mapel', 'guru']);
 
         $submission = Submission::where('tugas_id', $tugas->id)
             ->where('siswa_id', $siswa->id)
@@ -115,7 +115,7 @@ class SiswaTugasController extends Controller
         $submissionData = [
             'tugas_id' => $tugas->id,
             'siswa_id' => $siswa->id,
-            'jawaban'  => $validated['jawaban'] ?? null,
+            'konten'   => $validated['jawaban'] ?? null,
             'submitted_at' => now(),
         ];
 
@@ -125,8 +125,6 @@ class SiswaTugasController extends Controller
             $filename = time() . '_' . $siswa->id . '_' . \Illuminate\Support\Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('submissions/' . $tugas->id, $filename, 'public');
             $submissionData['file_path'] = $path;
-            $submissionData['file_name'] = $file->getClientOriginalName();
-            $submissionData['file_size'] = $file->getSize();
         }
 
         // Update existing or create new submission
@@ -172,7 +170,7 @@ class SiswaTugasController extends Controller
     {
         $siswa = Auth::user();
 
-        if ($submission->user_id !== $siswa->id) {
+        if ($submission->siswa_id !== $siswa->id) {
             abort(403, 'Anda tidak memiliki akses ke submission ini.');
         }
 
@@ -188,7 +186,7 @@ class SiswaTugasController extends Controller
     {
         $siswa = Auth::user();
 
-        if (! $siswa->kelas()->where('kelas.id', $kelas->id)->exists()) {
+        if (! $siswa->enrolledClasses()->where('kelas.id', $kelas->id)->exists()) {
             abort(403, 'Anda tidak terdaftar di kelas ini.');
         }
     }

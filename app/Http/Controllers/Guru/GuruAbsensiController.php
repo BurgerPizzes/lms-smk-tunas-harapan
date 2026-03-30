@@ -21,7 +21,7 @@ class GuruAbsensiController extends Controller
     {
         $this->authorizeGuruAccess($kelas);
 
-        $query = Attendance::where('kelas_id', $kelas->id)
+        $query = Attendance::where('class_id', $kelas->id)
             ->with(['mapel', 'guru']);
 
         if ($request->filled('mapel_id')) {
@@ -41,7 +41,7 @@ class GuruAbsensiController extends Controller
             ->withQueryString();
 
         $mapels = Mapel::whereHas('guruMapel', function ($query) use ($kelas) {
-            $query->where('kelas_id', $kelas->id)
+            $query->where('class_id', $kelas->id)
                   ->where('guru_id', Auth::id());
         })->orderBy('nama')->get();
 
@@ -55,10 +55,10 @@ class GuruAbsensiController extends Controller
     {
         $this->authorizeGuruAccess($kelas);
 
-        $kelas->load('siswa');
+        $kelas->load('siswas');
 
         $mapels = Mapel::whereHas('guruMapel', function ($query) use ($kelas) {
-            $query->where('kelas_id', $kelas->id)
+            $query->where('class_id', $kelas->id)
                   ->where('guru_id', Auth::id());
         })->orderBy('nama')->get();
 
@@ -75,7 +75,7 @@ class GuruAbsensiController extends Controller
         $validated = $request->validate([
             'mapel_id' => ['required', 'exists:mapels,id'],
             'tanggal'  => ['required', 'date', 'before_or_equal:today'],
-            'keterangan' => ['nullable', 'string', 'max:500'],
+            'catatan' => ['nullable', 'string', 'max:500'],
             'statuses' => ['required', 'array'],
             'statuses.*.user_id' => ['required', 'exists:users,id'],
             'statuses.*.status'  => ['required', 'string', 'in:hadir,izin,sakit,alpha'],
@@ -83,7 +83,7 @@ class GuruAbsensiController extends Controller
         ]);
 
         // Check for duplicate attendance (same class, mapel, date)
-        $exists = Attendance::where('kelas_id', $kelas->id)
+        $exists = Attendance::where('class_id', $kelas->id)
             ->where('mapel_id', $validated['mapel_id'])
             ->whereDate('tanggal', $validated['tanggal'])
             ->exists();
@@ -95,17 +95,17 @@ class GuruAbsensiController extends Controller
         DB::beginTransaction();
         try {
             $attendance = Attendance::create([
-                'kelas_id'   => $kelas->id,
-                'mapel_id'   => $validated['mapel_id'],
-                'guru_id'    => Auth::id(),
-                'tanggal'    => $validated['tanggal'],
-                'keterangan' => $validated['keterangan'] ?? null,
+                'class_id' => $kelas->id,
+                'mapel_id' => $validated['mapel_id'],
+                'guru_id'  => Auth::id(),
+                'tanggal'  => $validated['tanggal'],
+                'catatan'  => $validated['catatan'] ?? null,
             ]);
 
             foreach ($validated['statuses'] as $statusData) {
                 AttendanceDetail::create([
                     'attendance_id' => $attendance->id,
-                    'user_id'       => $statusData['user_id'],
+                    'siswa_id'      => $statusData['user_id'],
                     'status'        => $statusData['status'],
                     'keterangan'    => $statusData['keterangan'] ?? null,
                 ]);
@@ -129,7 +129,7 @@ class GuruAbsensiController extends Controller
     {
         $this->authorizeGuruAccess($attendance->kelas);
 
-        $attendance->load(['kelas', 'mapel', 'guru', 'details.user']);
+        $attendance->load(['kelas', 'mapel', 'guru', 'details.siswa']);
 
         return view('guru.absensi.show', compact('attendance'));
     }
@@ -142,7 +142,7 @@ class GuruAbsensiController extends Controller
         $this->authorizeGuruAccess($attendance->kelas);
 
         $validated = $request->validate([
-            'keterangan' => ['nullable', 'string', 'max:500'],
+            'catatan' => ['nullable', 'string', 'max:500'],
             'statuses' => ['required', 'array'],
             'statuses.*.id'         => ['required', 'exists:attendance_details,id'],
             'statuses.*.user_id'   => ['required', 'exists:users,id'],
@@ -153,7 +153,7 @@ class GuruAbsensiController extends Controller
         DB::beginTransaction();
         try {
             $attendance->update([
-                'keterangan' => $validated['keterangan'] ?? null,
+                'catatan' => $validated['catatan'] ?? null,
             ]);
 
             foreach ($validated['statuses'] as $statusData) {
@@ -183,11 +183,11 @@ class GuruAbsensiController extends Controller
     {
         $this->authorizeGuruAccess($kelas);
 
-        $siswa = $kelas->siswa()->orderBy('name')->get();
+        $siswa = $kelas->siswas()->orderBy('name')->get();
 
         $recapData = $siswa->map(function ($s) use ($kelas) {
             $attendanceDetails = AttendanceDetail::whereHas('attendance', function ($query) use ($kelas) {
-                $query->where('kelas_id', $kelas->id);
+                $query->where('class_id', $kelas->id);
             })
             ->where('siswa_id', $s->id)
             ->get();
@@ -217,7 +217,7 @@ class GuruAbsensiController extends Controller
     {
         $this->authorizeGuruAccess($kelas);
 
-        $siswa = $kelas->siswa()->orderBy('name')->get();
+        $siswa = $kelas->siswas()->orderBy('name')->get();
 
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
@@ -232,7 +232,7 @@ class GuruAbsensiController extends Controller
 
             foreach ($siswa as $index => $s) {
                 $details = AttendanceDetail::whereHas('attendance', function ($query) use ($kelas) {
-                    $query->where('kelas_id', $kelas->id);
+                    $query->where('class_id', $kelas->id);
                 })
                 ->where('siswa_id', $s->id)
                 ->get();
@@ -245,7 +245,7 @@ class GuruAbsensiController extends Controller
                 $persentase = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
 
                 fputcsv($file, [
-                    $index + 1, $s->name, $s->nis_nip ?? '-',
+                    $index + 1, $s->name, $s->nis ?? '-',
                     $hadir, $izin, $sakit, $alpha, $total, $persentase . '%',
                 ]);
             }
@@ -263,10 +263,10 @@ class GuruAbsensiController extends Controller
     {
         $guru = auth()->user();
         $hasAccess = GuruMapel::where('guru_id', $guru->id)
-            ->where('kelas_id', $kelas->id)
+            ->where('class_id', $kelas->id)
             ->exists();
 
-        if (! $hasAccess && $kelas->wali_kelas_id !== $guru->id) {
+        if (! $hasAccess && $kelas->guru_id !== $guru->id) {
             abort(403, 'Anda tidak memiliki akses ke kelas ini.');
         }
     }

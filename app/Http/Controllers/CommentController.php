@@ -19,7 +19,7 @@ class CommentController extends Controller
             'commentable_type' => ['required', 'string'],
             'commentable_id'   => ['required', 'integer'],
             'parent_id'        => ['nullable', 'integer', 'exists:comments,id'],
-            'konten'           => ['required', 'string', 'max:5000'],
+            'body'             => ['required', 'string', 'max:5000'],
         ]);
 
         // Validate commentable type
@@ -55,7 +55,7 @@ class CommentController extends Controller
             'commentable_type' => $validated['commentable_type'],
             'commentable_id'   => $validated['commentable_id'],
             'parent_id'        => $validated['parent_id'] ?? null,
-            'konten'           => $validated['konten'],
+            'body'             => $validated['body'],
         ]);
 
         if ($request->expectsJson()) {
@@ -81,11 +81,11 @@ class CommentController extends Controller
         }
 
         $validated = $request->validate([
-            'konten' => ['required', 'string', 'max:5000'],
+            'body' => ['required', 'string', 'max:5000'],
         ]);
 
         $comment->update([
-            'konten'    => $validated['konten'],
+            'body'      => $validated['body'],
             'is_edited' => true,
         ]);
 

@@ -22,7 +22,7 @@ class GuruQuizController extends Controller
     {
         $this->authorizeGuruAccess($kelas);
 
-        $query = Quiz::where('kelas_id', $kelas->id)->with('mapel', 'user');
+        $query = Quiz::where('class_id', $kelas->id)->with('mapel', 'guru');
 
         if ($request->filled('mapel_id')) {
             $query->where('mapel_id', $request->input('mapel_id'));
@@ -32,12 +32,12 @@ class GuruQuizController extends Controller
             $status = $request->input('status');
             if ($status === 'active') {
                 $query->where('is_published', true)
-                      ->where('waktu_mulai', '<=', now())
-                      ->where('waktu_selesai', '>=', now());
+                      ->where('mulai_at', '<=', now())
+                      ->where('selesai_at', '>=', now());
             } elseif ($status === 'upcoming') {
-                $query->where('is_published', true)->where('waktu_mulai', '>', now());
+                $query->where('is_published', true)->where('mulai_at', '>', now());
             } elseif ($status === 'ended') {
-                $query->where('waktu_selesai', '<', now());
+                $query->where('selesai_at', '<', now());
             }
         }
 
@@ -46,7 +46,7 @@ class GuruQuizController extends Controller
             ->withQueryString();
 
         $mapels = Mapel::whereHas('guruMapel', function ($query) use ($kelas) {
-            $query->where('kelas_id', $kelas->id)
+            $query->where('class_id', $kelas->id)
                   ->where('guru_id', Auth::id());
         })->orderBy('nama')->get();
 
@@ -61,7 +61,7 @@ class GuruQuizController extends Controller
         $this->authorizeGuruAccess($kelas);
 
         $mapels = Mapel::whereHas('guruMapel', function ($query) use ($kelas) {
-            $query->where('kelas_id', $kelas->id)
+            $query->where('class_id', $kelas->id)
                   ->where('guru_id', Auth::id());
         })->orderBy('nama')->get();
 
@@ -79,22 +79,18 @@ class GuruQuizController extends Controller
             'judul'         => ['required', 'string', 'max:255'],
             'mapel_id'      => ['required', 'exists:mapels,id'],
             'deskripsi'     => ['nullable', 'string'],
-            'waktu_mulai'   => ['required', 'date', 'after:now'],
-            'waktu_selesai' => ['required', 'date', 'after:waktu_mulai'],
+            'mulai_at'      => ['required', 'date', 'after:now'],
+            'selesai_at'    => ['required', 'date', 'after:mulai_at'],
             'durasi_menit'  => ['required', 'integer', 'min:1', 'max:300'],
-            'bobot'         => ['nullable', 'integer', 'min:1'],
-            'tampilkan_nilai' => ['sometimes', 'boolean'],
-            'acak_soal'     => ['sometimes', 'boolean'],
-            'acak_pilihan'  => ['sometimes', 'boolean'],
+            'show_result'   => ['sometimes', 'boolean'],
+            'random_soal'   => ['sometimes', 'boolean'],
             'is_published'  => ['sometimes', 'boolean'],
         ]);
 
-        $validated['kelas_id'] = $kelas->id;
-        $validated['user_id']  = Auth::id();
-        $validated['bobot']    = $validated['bobot'] ?? 100;
-        $validated['tampilkan_nilai'] = $request->boolean('tampilkan_nilai', true);
-        $validated['acak_soal'] = $request->boolean('acak_soal', false);
-        $validated['acak_pilihan'] = $request->boolean('acak_pilihan', false);
+        $validated['class_id'] = $kelas->id;
+        $validated['guru_id']  = Auth::id();
+        $validated['show_result'] = $request->boolean('show_result', true);
+        $validated['random_soal'] = $request->boolean('random_soal', false);
         $validated['is_published'] = $request->boolean('is_published', false);
 
         $quiz = Quiz::create($validated);
@@ -111,17 +107,17 @@ class GuruQuizController extends Controller
     {
         $this->authorizeGuruAccess($quiz->kelas);
 
-        $quiz->load(['kelas', 'mapel', 'user', 'questions' => function ($query) {
-            $query->orderBy('nomor');
+        $quiz->load(['kelas', 'mapel', 'guru', 'questions' => function ($query) {
+            $query->orderBy('urutan');
         }]);
 
         $attemptStats = QuizAttempt::where('quiz_id', $quiz->id)
             ->selectRaw('
                 COUNT(*) as total_attempts,
                 COUNT(DISTINCT siswa_id) as unique_students,
-                AVG(nilai) as average_score,
-                MAX(nilai) as highest_score,
-                MIN(nilai) as lowest_score
+                AVG(skor) as average_score,
+                MAX(skor) as highest_score,
+                MIN(skor) as lowest_score
             ')
             ->first();
 
@@ -136,29 +132,22 @@ class GuruQuizController extends Controller
         $this->authorizeGuruAccess($quiz->kelas);
 
         $validated = $request->validate([
-            'tipe'        => ['required', 'string', 'in:pg_4,pg_5,benar_salah,essay'],
+            'tipe'        => ['required', 'string', 'in:pilihan_ganda,essay,true_false'],
             'pertanyaan'  => ['required', 'string'],
-            'pilihan_a'   => ['nullable', 'string', 'required_if:tipe,pg_4,pg_5'],
-            'pilihan_b'   => ['nullable', 'string', 'required_if:tipe,pg_4,pg_5'],
-            'pilihan_c'   => ['nullable', 'string', 'required_if:tipe,pg_4,pg_5'],
-            'pilihan_d'   => ['nullable', 'string', 'required_if:tipe,pg_4,pg_5'],
-            'pilihan_e'   => ['nullable', 'string', 'required_if:tipe,pg_5'],
-            'jawaban'     => ['required', 'string'],
+            'pilihan_a'   => ['nullable', 'string'],
+            'pilihan_b'   => ['nullable', 'string'],
+            'pilihan_c'   => ['nullable', 'string'],
+            'pilihan_d'   => ['nullable', 'string'],
+            'pilihan_e'   => ['nullable', 'string'],
+            'jawaban_benar' => ['required', 'string'],
             'pembahasan'  => ['nullable', 'string'],
-            'bobot'       => ['nullable', 'integer', 'min:1'],
-            'gambar'      => ['nullable', 'image', 'max:2048'],
+            'poin'        => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $nextNumber = QuizQuestion::where('quiz_id', $quiz->id)->max('nomor') ?? 0;
+        $nextNumber = QuizQuestion::where('quiz_id', $quiz->id)->max('urutan') ?? 0;
         $validated['quiz_id'] = $quiz->id;
-        $validated['nomor']   = $nextNumber + 1;
-        $validated['bobot']   = $validated['bobot'] ?? 1;
-
-        // Handle image upload
-        if ($request->hasFile('gambar')) {
-            $path = $request->file('gambar')->store('quiz/images', 'public');
-            $validated['gambar'] = $path;
-        }
+        $validated['urutan']  = $nextNumber + 1;
+        $validated['poin']    = $validated['poin'] ?? 10;
 
         QuizQuestion::create($validated);
 
@@ -175,29 +164,19 @@ class GuruQuizController extends Controller
         $this->authorizeGuruAccess($question->quiz->kelas);
 
         $validated = $request->validate([
-            'tipe'        => ['required', 'string', 'in:pg_4,pg_5,benar_salah,essay'],
+            'tipe'        => ['required', 'string', 'in:pilihan_ganda,essay,true_false'],
             'pertanyaan'  => ['required', 'string'],
-            'pilihan_a'   => ['nullable', 'string', 'required_if:tipe,pg_4,pg_5'],
-            'pilihan_b'   => ['nullable', 'string', 'required_if:tipe,pg_4,pg_5'],
-            'pilihan_c'   => ['nullable', 'string', 'required_if:tipe,pg_4,pg_5'],
-            'pilihan_d'   => ['nullable', 'string', 'required_if:tipe,pg_4,pg_5'],
-            'pilihan_e'   => ['nullable', 'string', 'required_if:tipe,pg_5'],
-            'jawaban'     => ['required', 'string'],
+            'pilihan_a'   => ['nullable', 'string'],
+            'pilihan_b'   => ['nullable', 'string'],
+            'pilihan_c'   => ['nullable', 'string'],
+            'pilihan_d'   => ['nullable', 'string'],
+            'pilihan_e'   => ['nullable', 'string'],
+            'jawaban_benar' => ['required', 'string'],
             'pembahasan'  => ['nullable', 'string'],
-            'bobot'       => ['nullable', 'integer', 'min:1'],
-            'gambar'      => ['nullable', 'image', 'max:2048'],
+            'poin'        => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $validated['bobot'] = $validated['bobot'] ?? 1;
-
-        // Handle image upload
-        if ($request->hasFile('gambar')) {
-            if ($question->gambar) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($question->gambar);
-            }
-            $path = $request->file('gambar')->store('quiz/images', 'public');
-            $validated['gambar'] = $path;
-        }
+        $validated['poin'] = $validated['poin'] ?? 10;
 
         $question->update($validated);
 
@@ -212,10 +191,6 @@ class GuruQuizController extends Controller
     public function deleteQuestion(QuizQuestion $question): \Illuminate\Http\RedirectResponse
     {
         $this->authorizeGuruAccess($question->quiz->kelas);
-
-        if ($question->gambar) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($question->gambar);
-        }
 
         $question->delete();
 
@@ -234,18 +209,18 @@ class GuruQuizController extends Controller
         $quiz->load(['kelas', 'mapel']);
 
         $attempts = QuizAttempt::where('quiz_id', $quiz->id)
-            ->with(['user', 'answers.question'])
-            ->orderBy('nilai', 'desc')
+            ->with('siswa')
+            ->orderBy('skor', 'desc')
             ->paginate(25);
 
         $statistics = [
             'total_attempts'   => QuizAttempt::where('quiz_id', $quiz->id)->count(),
             'unique_students'  => QuizAttempt::where('quiz_id', $quiz->id)->distinct('siswa_id')->count('siswa_id'),
-            'average_score'    => QuizAttempt::where('quiz_id', $quiz->id)->whereNotNull('nilai')->avg('nilai'),
-            'highest_score'    => QuizAttempt::where('quiz_id', $quiz->id)->max('nilai'),
-            'lowest_score'     => QuizAttempt::where('quiz_id', $quiz->id)->min('nilai'),
-            'passed_count'     => QuizAttempt::where('quiz_id', $quiz->id)->where('nilai', '>=', 75)->count(),
-            'failed_count'     => QuizAttempt::where('quiz_id', $quiz->id)->where('nilai', '<', 75)->count(),
+            'average_score'    => QuizAttempt::where('quiz_id', $quiz->id)->whereNotNull('skor')->avg('skor'),
+            'highest_score'    => QuizAttempt::where('quiz_id', $quiz->id)->max('skor'),
+            'lowest_score'     => QuizAttempt::where('quiz_id', $quiz->id)->min('skor'),
+            'passed_count'     => QuizAttempt::where('quiz_id', $quiz->id)->where('skor', '>=', 75)->count(),
+            'failed_count'     => QuizAttempt::where('quiz_id', $quiz->id)->where('skor', '<', 75)->count(),
         ];
 
         return view('guru.quiz.results', compact('quiz', 'attempts', 'statistics'));
@@ -258,10 +233,10 @@ class GuruQuizController extends Controller
     {
         $guru = auth()->user();
         $hasAccess = GuruMapel::where('guru_id', $guru->id)
-            ->where('kelas_id', $kelas->id)
+            ->where('class_id', $kelas->id)
             ->exists();
 
-        if (! $hasAccess && $kelas->wali_kelas_id !== $guru->id) {
+        if (! $hasAccess && $kelas->guru_id !== $guru->id) {
             abort(403, 'Anda tidak memiliki akses ke kelas ini.');
         }
     }

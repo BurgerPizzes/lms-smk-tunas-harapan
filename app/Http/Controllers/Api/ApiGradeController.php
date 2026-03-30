@@ -9,6 +9,7 @@ use App\Models\Submission;
 use App\Models\Tugas;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ApiGradeController extends Controller
 {
@@ -21,21 +22,21 @@ class ApiGradeController extends Controller
 
         // Guru can view, siswa can view own
         $query = Submission::whereHas('tugas', function ($query) use ($kelas, $mapel) {
-            $query->where('kelas_id', $kelas->id)
+            $query->where('class_id', $kelas->id)
                   ->where('mapel_id', $mapel->id);
         })
         ->whereNotNull('nilai')
-        ->with(['user', 'tugas']);
+        ->with(['siswa', 'tugas']);
 
         if ($user->hasRole('siswa')) {
             $query->where('siswa_id', $user->id);
         }
 
-        $submissions = $query->orderBy('graded_at', 'desc')->paginate(20);
+        $submissions = $query->orderByDesc('submitted_at')->paginate(20);
 
         // Calculate statistics
         $allGraded = Submission::whereHas('tugas', function ($query) use ($kelas, $mapel) {
-            $query->where('kelas_id', $kelas->id)->where('mapel_id', $mapel->id);
+            $query->where('class_id', $kelas->id)->where('mapel_id', $mapel->id);
         })->whereNotNull('nilai');
 
         $statistics = [
@@ -62,7 +63,7 @@ class ApiGradeController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasRole('guru')) {
+        if (! $user->hasRole('guru')) {
             return response()->json(['message' => 'Hanya guru yang dapat memberi nilai.'], 403);
         }
 
@@ -80,7 +81,6 @@ class ApiGradeController extends Controller
                 $submission->update([
                     'nilai'     => $gradeData['nilai'],
                     'feedback'  => $gradeData['feedback'] ?? null,
-                    'graded_at' => now(),
                 ]);
                 $count++;
             }
@@ -99,20 +99,20 @@ class ApiGradeController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasRole('guru')) {
+        if (! $user->hasRole('guru')) {
             return response()->json(['message' => 'Hanya guru yang dapat mengekspor nilai.'], 403);
         }
 
-        $tugasList = Tugas::where('kelas_id', $kelas->id)
+        $tugasList = Tugas::where('class_id', $kelas->id)
             ->with('mapel')
             ->orderBy('created_at')
             ->get();
 
-        $siswa = $kelas->siswa()->orderBy('name')->get();
+        $siswa = $kelas->siswas()->orderBy('name')->get();
 
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="nilai_' . \Illuminate\Support\Str::slug($kelas->nama) . '_' . date('Y-m-d') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="nilai_' . Str::slug($kelas->nama) . '_' . date('Y-m-d') . '.csv"',
         ];
 
         $callback = function () use ($tugasList, $siswa) {
@@ -127,13 +127,13 @@ class ApiGradeController extends Controller
             fputcsv($file, $header);
 
             foreach ($siswa as $index => $s) {
-                $row = [$index + 1, $s->name, $s->nis_nip ?? '-'];
+                $row = [$index + 1, $s->name, $s->nis ?? '-'];
                 $total = 0;
                 $graded = 0;
 
                 foreach ($tugasList as $tugas) {
                     $sub = Submission::where('tugas_id', $tugas->id)
-                        ->where('user_id', $s->id)
+                        ->where('siswa_id', $s->id)
                         ->first();
 
                     $val = $sub?->nilai ?? '-';

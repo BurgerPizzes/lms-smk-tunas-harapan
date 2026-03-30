@@ -20,16 +20,15 @@ class SiswaDashboardController extends Controller
         $siswa = Auth::user();
 
         // Enrolled classes
-        $enrolledClasses = $siswa->kelas()
+        $enrolledClasses = $siswa->enrolledClasses()
             ->with(['jurusan', 'waliKelas'])
-            ->wherePivotNull('deleted_at')
             ->orderBy('nama')
             ->get();
 
         $kelasIds = $enrolledClasses->pluck('id')->toArray();
 
         // Upcoming deadlines (open tugas in enrolled classes)
-        $upcomingDeadlines = Tugas::whereIn('kelas_id', $kelasIds)
+        $upcomingDeadlines = Tugas::whereIn('class_id', $kelasIds)
             ->where('deadline', '>=', now())
             ->where('is_published', true)
             ->orderBy('deadline')
@@ -52,7 +51,7 @@ class SiswaDashboardController extends Controller
         $recentGrades = Submission::where('siswa_id', $siswa->id)
             ->whereNotNull('nilai')
             ->with(['tugas.kelas', 'tugas.mapel'])
-            ->latest('graded_at')
+            ->latest('submitted_at')
             ->take(10)
             ->get();
 

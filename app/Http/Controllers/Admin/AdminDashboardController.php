@@ -31,10 +31,10 @@ class AdminDashboardController extends Controller
             ->take(10)
             ->get();
 
-        // Attendance summary for the current week (join with details to get status)
+        // Attendance summary for the current week (use tanggal column)
         $attendanceSummary = DB::table('attendances')
             ->join('attendance_details', 'attendances.id', '=', 'attendance_details.attendance_id')
-            ->where('attendances.created_at', '>=', now()->startOfWeek())
+            ->where('attendances.tanggal', '>=', now()->startOfWeek()->toDateString())
             ->selectRaw('
                 COUNT(*) as total_records,
                 SUM(CASE WHEN attendance_details.status = "hadir" THEN 1 ELSE 0 END) as hadir,

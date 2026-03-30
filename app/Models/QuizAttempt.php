@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class QuizAttempt extends Model
 {
@@ -48,6 +49,11 @@ class QuizAttempt extends Model
     public function siswa(): BelongsTo
     {
         return $this->belongsTo(User::class, 'siswa_id');
+    }
+
+    public function answers(): HasMany
+    {
+        return $this->hasMany(QuizAnswer::class, 'quiz_attempt_id');
     }
 
     // ─── Methods ──────────────────────────────────────────────────
@@ -100,7 +106,7 @@ class QuizAttempt extends Model
 
     public function scopeInProgress($query)
     {
-        return $query->where('status', 'berjalan');
+        return $query->where('status', 'dikerjakan');
     }
 
     public function scopeBySiswa($query, int $siswaId)

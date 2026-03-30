@@ -9,6 +9,7 @@ use App\Models\Mapel;
 use App\Models\Submission;
 use App\Models\Tugas;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
 class GuruPenilaianController extends Controller
@@ -23,7 +24,7 @@ class GuruPenilaianController extends Controller
         $tugas->load(['kelas', 'mapel']);
 
         $submissions = Submission::where('tugas_id', $tugas->id)
-            ->with('user')
+            ->with('siswa')
             ->orderBy('nilai')
             ->paginate(20);
 
@@ -47,7 +48,6 @@ class GuruPenilaianController extends Controller
         $submission->update([
             'nilai'    => $validated['nilai'],
             'feedback' => $validated['feedback'],
-            'graded_at' => now(),
         ]);
 
         return back()->with('success', 'Nilai berhasil diberikan.');
@@ -73,7 +73,6 @@ class GuruPenilaianController extends Controller
                 $submission->update([
                     'nilai'     => $gradeData['nilai'],
                     'feedback'  => $gradeData['feedback'] ?? null,
-                    'graded_at' => now(),
                 ]);
                 $count++;
             }
@@ -89,12 +88,12 @@ class GuruPenilaianController extends Controller
     {
         $this->authorizeGuruAccess($kelas);
 
-        $tugasList = Tugas::where('kelas_id', $kelas->id)
+        $tugasList = Tugas::where('class_id', $kelas->id)
             ->where('mapel_id', $mapel->id)
             ->orderBy('created_at')
             ->get();
 
-        $siswa = $kelas->siswa()->orderBy('name')->get();
+        $siswa = $kelas->siswas()->orderBy('name')->get();
 
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
@@ -115,13 +114,13 @@ class GuruPenilaianController extends Controller
 
             // Data rows
             foreach ($siswa as $index => $s) {
-                $row = [$index + 1, $s->name, $s->nis_nip ?? '-'];
+                $row = [$index + 1, $s->name, $s->nis ?? '-'];
                 $totalNilai = 0;
                 $gradedCount = 0;
 
                 foreach ($tugasList as $tugas) {
                     $submission = Submission::where('tugas_id', $tugas->id)
-                        ->where('user_id', $s->id)
+                        ->where('siswa_id', $s->id)
                         ->first();
 
                     $nilai = $submission?->nilai ?? '-';
@@ -152,18 +151,18 @@ class GuruPenilaianController extends Controller
     {
         $this->authorizeGuruAccess($kelas);
 
-        $kelas->load(['siswa', 'guruMapel.mapel']);
+        $kelas->load(['siswas', 'guruMapel.mapel']);
 
         $mapels = $kelas->guruMapel->pluck('mapel');
 
         $recapData = [];
         foreach ($mapels as $mapel) {
-            $tugasList = Tugas::where('kelas_id', $kelas->id)
+            $tugasList = Tugas::where('class_id', $kelas->id)
                 ->where('mapel_id', $mapel->id)
                 ->orderBy('created_at')
                 ->get();
 
-            $siswaData = $kelas->siswa->map(function ($siswa) use ($tugasList) {
+            $siswaData = $kelas->siswas->map(function ($siswa) use ($tugasList) {
                 $submissions = Submission::whereIn('tugas_id', $tugasList->pluck('id'))
                     ->where('siswa_id', $siswa->id)
                     ->get();
@@ -236,7 +235,7 @@ class GuruPenilaianController extends Controller
     {
         $guru = auth()->user();
         return GuruMapel::where('guru_id', $guru->id)
-            ->where('kelas_id', $submission->tugas->kelas_id)
+            ->where('class_id', $submission->tugas->class_id)
             ->where('mapel_id', $submission->tugas->mapel_id)
             ->exists();
     }
@@ -248,10 +247,10 @@ class GuruPenilaianController extends Controller
     {
         $guru = auth()->user();
         $hasAccess = GuruMapel::where('guru_id', $guru->id)
-            ->where('kelas_id', $kelas->id)
+            ->where('class_id', $kelas->id)
             ->exists();
 
-        if (! $hasAccess && $kelas->wali_kelas_id !== $guru->id) {
+        if (! $hasAccess && $kelas->guru_id !== $guru->id) {
             abort(403, 'Anda tidak memiliki akses ke kelas ini.');
         }
     }

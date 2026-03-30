@@ -19,12 +19,12 @@ class ApiSubmissionController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasRole('guru')) {
+        if (! $user->hasRole('guru')) {
             return response()->json(['message' => 'Hanya guru yang dapat melihat semua submission.'], 403);
         }
 
         $submissions = Submission::where('tugas_id', $tugas->id)
-            ->with('user')
+            ->with('siswa')
             ->latest()
             ->paginate(20);
 
@@ -41,7 +41,7 @@ class ApiSubmissionController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasRole('siswa')) {
+        if (! $user->hasRole('siswa')) {
             return response()->json(['message' => 'Hanya siswa yang dapat mengumpulkan tugas.'], 403);
         }
 
@@ -67,8 +67,8 @@ class ApiSubmissionController extends Controller
 
         $submissionData = [
             'tugas_id'     => $tugas->id,
-            'user_id'      => $user->id,
-            'jawaban'      => $validated['jawaban'] ?? null,
+            'siswa_id'     => $user->id,
+            'konten'       => $validated['jawaban'] ?? null,
             'submitted_at' => now(),
         ];
 
@@ -77,8 +77,6 @@ class ApiSubmissionController extends Controller
             $filename = time() . '_' . $user->id . '_' . \Illuminate\Support\Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('submissions/' . $tugas->id, $filename, 'public');
             $submissionData['file_path'] = $path;
-            $submissionData['file_name'] = $file->getClientOriginalName();
-            $submissionData['file_size'] = $file->getSize();
         }
 
         // Update existing or create
@@ -114,7 +112,7 @@ class ApiSubmissionController extends Controller
             return response()->json(['message' => 'Anda tidak memiliki akses.'], 403);
         }
 
-        $submission->load(['tugas.kelas', 'tugas.mapel', 'user']);
+        $submission->load(['tugas.kelas', 'tugas.mapel', 'siswa']);
 
         return response()->json([
             'success' => true,
@@ -129,7 +127,7 @@ class ApiSubmissionController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasRole('guru')) {
+        if (! $user->hasRole('guru')) {
             return response()->json(['message' => 'Hanya guru yang dapat memberi nilai.'], 403);
         }
 
@@ -139,9 +137,8 @@ class ApiSubmissionController extends Controller
         ]);
 
         $submission->update([
-            'nilai'     => $validated['nilai'],
-            'feedback'  => $validated['feedback'],
-            'graded_at' => now(),
+            'nilai'    => $validated['nilai'],
+            'feedback' => $validated['feedback'],
         ]);
 
         return response()->json([

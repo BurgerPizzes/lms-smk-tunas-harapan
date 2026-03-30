@@ -20,7 +20,7 @@ class GuruTugasController extends Controller
     {
         $this->authorizeGuruAccess($kelas);
 
-        $query = Tugas::where('kelas_id', $kelas->id)->with('mapel', 'user');
+        $query = Tugas::where('class_id', $kelas->id)->with('mapel', 'guru');
 
         if ($request->filled('mapel_id')) {
             $query->where('mapel_id', $request->input('mapel_id'));
@@ -40,7 +40,7 @@ class GuruTugasController extends Controller
             ->withQueryString();
 
         $mapels = Mapel::whereHas('guruMapel', function ($query) use ($kelas) {
-            $query->where('kelas_id', $kelas->id)
+            $query->where('class_id', $kelas->id)
                   ->where('guru_id', Auth::id());
         })->orderBy('nama')->get();
 
@@ -55,7 +55,7 @@ class GuruTugasController extends Controller
         $this->authorizeGuruAccess($kelas);
 
         $mapels = Mapel::whereHas('guruMapel', function ($query) use ($kelas) {
-            $query->where('kelas_id', $kelas->id)
+            $query->where('class_id', $kelas->id)
                   ->where('guru_id', Auth::id());
         })->orderBy('nama')->get();
 
@@ -78,8 +78,8 @@ class GuruTugasController extends Controller
             'is_published' => ['sometimes', 'boolean'],
         ]);
 
-        $validated['kelas_id'] = $kelas->id;
-        $validated['user_id']  = Auth::id();
+        $validated['class_id'] = $kelas->id;
+        $validated['guru_id']  = Auth::id();
         $validated['is_published'] = $request->boolean('is_published', true);
 
         // Handle file upload
@@ -87,9 +87,7 @@ class GuruTugasController extends Controller
             $file = $request->file('file');
             $filename = time() . '_' . \Illuminate\Support\Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('tugas/' . $kelas->id, $filename, 'public');
-            $validated['file_path'] = $path;
-            $validated['file_name'] = $file->getClientOriginalName();
-            $validated['file_size'] = $file->getSize();
+            $validated['file_attachment'] = $path;
         }
 
         Tugas::create($validated);
@@ -109,9 +107,9 @@ class GuruTugasController extends Controller
         $tugas->load([
             'kelas',
             'mapel',
-            'user',
+            'guru',
             'submissions' => function ($query) {
-                $query->with('user')->latest();
+                $query->with('siswa')->latest();
             },
         ]);
 
@@ -134,7 +132,7 @@ class GuruTugasController extends Controller
         $this->authorizeGuruAccess($tugas->kelas);
 
         $mapels = Mapel::whereHas('guruMapel', function ($query) use ($tugas) {
-            $query->where('kelas_id', $tugas->kelas_id)
+            $query->where('class_id', $tugas->class_id)
                   ->where('guru_id', Auth::id());
         })->orderBy('nama')->get();
 
@@ -161,16 +159,14 @@ class GuruTugasController extends Controller
 
         // Handle new file upload
         if ($request->hasFile('file')) {
-            if ($tugas->file_path) {
-                Storage::disk('public')->delete($tugas->file_path);
+            if ($tugas->file_attachment) {
+                Storage::disk('public')->delete($tugas->file_attachment);
             }
 
             $file = $request->file('file');
             $filename = time() . '_' . \Illuminate\Support\Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('tugas/' . $tugas->kelas_id, $filename, 'public');
-            $validated['file_path'] = $path;
-            $validated['file_name'] = $file->getClientOriginalName();
-            $validated['file_size'] = $file->getSize();
+            $path = $file->storeAs('tugas/' . $tugas->class_id, $filename, 'public');
+            $validated['file_attachment'] = $path;
         }
 
         $tugas->update($validated);
@@ -188,8 +184,8 @@ class GuruTugasController extends Controller
         $this->authorizeGuruAccess($tugas->kelas);
 
         // Delete file
-        if ($tugas->file_path) {
-            Storage::disk('public')->delete($tugas->file_path);
+        if ($tugas->file_attachment) {
+            Storage::disk('public')->delete($tugas->file_attachment);
         }
 
         // Delete all submission files
@@ -202,7 +198,7 @@ class GuruTugasController extends Controller
         $tugas->delete();
 
         return redirect()
-            ->route('guru.tugas.index', $tugas->kelas_id)
+            ->route('guru.tugas.index', $tugas->kelas)
             ->with('success', 'Tugas berhasil dihapus.');
     }
 
@@ -213,10 +209,10 @@ class GuruTugasController extends Controller
     {
         $guru = auth()->user();
         $hasAccess = GuruMapel::where('guru_id', $guru->id)
-            ->where('kelas_id', $kelas->id)
+            ->where('class_id', $kelas->id)
             ->exists();
 
-        if (! $hasAccess && $kelas->wali_kelas_id !== $guru->id) {
+        if (! $hasAccess && $kelas->guru_id !== $guru->id) {
             abort(403, 'Anda tidak memiliki akses ke kelas ini.');
         }
     }

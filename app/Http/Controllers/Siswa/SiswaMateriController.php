@@ -18,9 +18,9 @@ class SiswaMateriController extends Controller
     {
         $this->verifyEnrollment($kelas);
 
-        $query = Materi::where('kelas_id', $kelas->id)
+        $query = Materi::where('class_id', $kelas->id)
             ->where('is_published', true)
-            ->with('mapel', 'user');
+            ->with('mapel', 'guru');
 
         if ($request->filled('mapel_id')) {
             $query->where('mapel_id', $request->input('mapel_id'));
@@ -34,7 +34,7 @@ class SiswaMateriController extends Controller
         $materis = $query->orderBy('urutan')->paginate(15)->withQueryString();
 
         $mapels = Mapel::whereHas('materi', function ($query) use ($kelas) {
-            $query->where('kelas_id', $kelas->id)->where('is_published', true);
+            $query->where('class_id', $kelas->id)->where('is_published', true);
         })->orderBy('nama')->get();
 
         return view('siswa.materi.index', compact('kelas', 'materis', 'mapels'));
@@ -51,7 +51,7 @@ class SiswaMateriController extends Controller
             abort(404, 'Materi tidak ditemukan.');
         }
 
-        $materi->load(['kelas', 'mapel', 'user', 'comments.user']);
+        $materi->load(['kelas', 'mapel', 'guru', 'comments.user']);
 
         // Mark materi as read/visited by student (optional tracking)
         $siswa = Auth::user();
@@ -80,7 +80,7 @@ class SiswaMateriController extends Controller
             return back()->withErrors('File tidak ditemukan.');
         }
 
-        return response()->download($filePath, $materi->file_name ?? 'file');
+        return response()->download($filePath, 'file');
     }
 
     /**
@@ -90,7 +90,7 @@ class SiswaMateriController extends Controller
     {
         $siswa = Auth::user();
 
-        if (! $siswa->kelas()->where('kelas.id', $kelas->id)->exists()) {
+        if (! $siswa->enrolledClasses()->where('kelas.id', $kelas->id)->exists()) {
             abort(403, 'Anda tidak terdaftar di kelas ini.');
         }
     }
