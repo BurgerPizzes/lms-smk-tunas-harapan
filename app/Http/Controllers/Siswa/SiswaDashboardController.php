@@ -28,24 +28,15 @@ class SiswaDashboardController extends Controller
         $kelasIds = $enrolledClasses->pluck('id')->toArray();
 
         // Upcoming deadlines (open tugas in enrolled classes)
-        $upcomingDeadlines = Tugas::whereIn('class_id', $kelasIds)
+        $upcomingTugas = Tugas::whereIn('class_id', $kelasIds)
             ->where('deadline', '>=', now())
             ->where('is_published', true)
+            ->with(['kelas', 'mapel', 'submissions' => function ($q) use ($siswa) {
+                $q->where('siswa_id', $siswa->id);
+            }])
             ->orderBy('deadline')
             ->take(10)
-            ->get()
-            ->map(function ($tugas) use ($siswa) {
-                $submission = Submission::where('tugas_id', $tugas->id)
-                    ->where('siswa_id', $siswa->id)
-                    ->first();
-
-                return [
-                    'tugas'         => $tugas,
-                    'is_submitted'  => $submission !== null,
-                    'grade'         => $submission?->nilai,
-                    'time_remaining' => now()->diffInHours($tugas->deadline, false),
-                ];
-            });
+            ->get();
 
         // Recent grades
         $recentGrades = Submission::where('siswa_id', $siswa->id)
@@ -83,15 +74,34 @@ class SiswaDashboardController extends Controller
             ->where('is_read', false)
             ->count();
 
+        // Stats for cards
+        $totalTugas = Tugas::whereIn('class_id', $kelasIds)
+            ->where('is_published', true)
+            ->count();
+        $tugasSelesai = Submission::where('siswa_id', $siswa->id)
+            ->count();
+        $kehadiran = $attendanceSummary && $attendanceSummary->total > 0
+            ? round(($attendanceSummary->hadir / $attendanceSummary->total) * 100, 1)
+            : 0;
+
+        $stats = [
+            'kelas'         => $enrolledClasses->count(),
+            'tugas_selesai' => $tugasSelesai,
+            'total_tugas'   => $totalTugas,
+            'nilai_rata'    => $averageGrade ? round($averageGrade, 1) : 0,
+            'kehadiran'     => $kehadiran,
+        ];
+
         return view('siswa.dashboard', compact(
             'siswa',
             'enrolledClasses',
-            'upcomingDeadlines',
+            'upcomingTugas',
             'recentGrades',
             'averageGrade',
             'attendanceSummary',
             'notifications',
-            'unreadCount'
+            'unreadCount',
+            'stats'
         ));
     }
 }

@@ -22,70 +22,82 @@ class AdminDashboardController extends Controller
         $totalGuru     = User::role('guru')->count();
         $totalSiswa    = User::role('siswa')->count();
         $totalKelas    = Kelas::count();
+        $activeKelas  = Kelas::where('is_active', true)->count();
         $totalMateri   = Materi::count();
         $totalTugas    = Tugas::count();
 
-        // Recent activity logs (last 7 days)
+        // Active tahun ajaran
+        $activeTA = \App\Models\TahunAjaran::where('aktif', true)->first();
+        $tahunAjaranLabel = $activeTA
+            ? $activeTA->nama . ' ' . ucfirst($activeTA->semester)
+            : '-';
+
+        // Growth stats (this month vs last month)
+        $siswaGrowth = User::role('siswa')
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->count();
+        $guruGrowth = User::role('guru')
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->count();
+        $materiGrowth = Materi::where('created_at', '>=', now()->subWeek())->count();
+        $tugasPending = \App\Models\Submission::whereNull('nilai')->count();
+
+        // Build stats array (used by dashboard view)
+        $stats = [
+            'totalSiswa'      => $totalSiswa,
+            'totalGuru'       => $totalGuru,
+            'totalKelas'      => $totalKelas,
+            'totalMateri'     => $totalMateri,
+            'totalTugas'      => $totalTugas,
+            'kelasAktif'      => $activeKelas,
+            'tahunAjaran'     => $tahunAjaranLabel,
+            'semester'        => $activeTA ? ucfirst($activeTA->semester) : '-',
+            'siswaGrowth'      => $siswaGrowth,
+            'guruGrowth'      => $guruGrowth,
+            'materiGrowth'    => $materiGrowth,
+            'tugasPending'    => $tugasPending,
+        ];
+
+        // Recent activity logs
         $recentActivities = ActivityLog::with('user')
             ->latest()
             ->take(10)
             ->get();
 
-        // Attendance summary for the current week (use tanggal column)
-        $attendanceSummary = DB::table('attendances')
-            ->join('attendance_details', 'attendances.id', '=', 'attendance_details.attendance_id')
-            ->where('attendances.tanggal', '>=', now()->startOfWeek()->toDateString())
-            ->selectRaw('
-                COUNT(*) as total_records,
-                SUM(CASE WHEN attendance_details.status = "hadir" THEN 1 ELSE 0 END) as hadir,
-                SUM(CASE WHEN attendance_details.status = "izin" THEN 1 ELSE 0 END) as izin,
-                SUM(CASE WHEN attendance_details.status = "sakit" THEN 1 ELSE 0 END) as sakit,
-                SUM(CASE WHEN attendance_details.status = "alpha" THEN 1 ELSE 0 END) as alpha
-            ')
-            ->first();
-
-        // Top performing students (highest average scores) — uses Spatie role check via join
-        $topStudents = DB::table('submissions')
-            ->join('users', 'submissions.siswa_id', '=', 'users.id')
-            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
-            ->where('model_has_roles.model_type', User::class)
-            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
-            ->where('roles.name', 'siswa')
-            ->whereNotNull('submissions.nilai')
-            ->select('users.id', 'users.name', 'users.email', DB::raw('AVG(submissions.nilai) as average_nilai'))
-            ->groupBy('users.id', 'users.name', 'users.email')
-            ->orderByDesc('average_nilai')
-            ->take(5)
-            ->get();
-
-        // Monthly registration trend (last 6 months) — uses Spatie roles table
-        $registrationTrend = User::selectRaw("
+        // Monthly registrations for chart
+        $monthlyRegistrations = User::selectRaw("
                 DATE_FORMAT(users.created_at, '%Y-%m') as month,
-                COUNT(*) as count,
-                SUM(CASE WHEN roles.name = 'guru' THEN 1 ELSE 0 END) as guru_count,
-                SUM(CASE WHEN roles.name = 'siswa' THEN 1 ELSE 0 END) as siswa_count
+                COUNT(*) as count
             ")
-            ->leftJoin('model_has_roles', function ($join) {
-                $join->on('users.id', '=', 'model_has_roles.model_id')
-                     ->where('model_has_roles.model_type', User::class);
-            })
-            ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
             ->where('users.created_at', '>=', now()->subMonths(6))
             ->groupBy('month')
             ->orderBy('month')
             ->get();
+        $maxRegistration = $monthlyRegistrations->max('count') ?? 1;
+
+        // Jurusan distribution for pie chart
+        $jurusans = \App\Models\Jurusan::withCount('users')->orderBy('nama')->get();
+        $colors = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6'];
+        $jurusanDistribution = [];
+        $jurusanColors = [];
+        foreach ($jurusans as $i => $j) {
+            if ($j->users_count > 0) {
+                $jurusanDistribution[] = [
+                    'nama'  => $j->nama,
+                    'count' => $j->users_count,
+                    'color' => $colors[$i % count($colors)],
+                ];
+                $jurusanColors[] = $colors[$i % count($colors)];
+            }
+        }
 
         return view('admin.dashboard', compact(
-            'totalUsers',
-            'totalGuru',
-            'totalSiswa',
-            'totalKelas',
-            'totalMateri',
-            'totalTugas',
+            'stats',
             'recentActivities',
-            'attendanceSummary',
-            'topStudents',
-            'registrationTrend'
+            'monthlyRegistrations',
+            'maxRegistration',
+            'jurusanDistribution',
+            'jurusanColors'
         ));
     }
 }

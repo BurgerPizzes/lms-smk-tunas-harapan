@@ -31,26 +31,17 @@
             {{-- Mapel Filter --}}
             <select id="filterMapel" onchange="filterMateri()" class="px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none bg-white">
                 <option value="">Semua Mata Pelajaran</option>
-                @foreach($mapelList as $mapel)
-                    <option value="{{ $mapel->id }}">{{ $mapel->nama_mapel }}</option>
+                @foreach($mapels as $mapel)
+                    <option value="{{ $mapel->id }}">{{ $mapel->nama }}</option>
                 @endforeach
             </select>
-            {{-- View Toggle --}}
-            <div class="flex border border-gray-200 rounded-lg overflow-hidden">
-                <button onclick="setView('grid')" id="btn-grid" class="p-2.5 bg-blue-50 text-blue-600">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                </button>
-                <button onclick="setView('list')" id="btn-list" class="p-2.5 text-gray-400 hover:bg-gray-50">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                </button>
-            </div>
         </div>
     </div>
 
     {{-- Materi Grid View --}}
     <div id="view-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        @forelse($materi as $m)
-            <a href="{{ route('siswa.materi.show', [$kelas, $m]) }}" class="materi-item bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md hover:-translate-y-0.5 transition-all group" data-mapel="{{ $m->mapel_id }}" data-search="{{ strtolower($m->judul) }}">
+        @forelse($materis as $m)
+            <a href="{{ route('siswa.materi.show', $m) }}" class="materi-item bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md hover:-translate-y-0.5 transition-all group" data-mapel="{{ $m->mapel_id }}" data-search="{{ strtolower($m->judul) }}">
                 <div class="flex items-start gap-4">
                     <div class="w-12 h-12 rounded-xl {{ $m->tipe === 'video' ? 'bg-red-100 text-red-600' : ($m->tipe === 'file' ? 'bg-yellow-100 text-yellow-600' : 'bg-blue-100 text-blue-600') }} flex items-center justify-center flex-shrink-0">
                         @if($m->tipe === 'video')
@@ -64,7 +55,7 @@
                     <div class="flex-1 min-w-0">
                         <h3 class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 line-clamp-2">{{ $m->judul }}</h3>
                         <div class="mt-2 space-y-1">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">{{ $m->mapel?->nama_mapel }}</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">{{ $m->mapel?->nama }}</span>
                             <p class="text-xs text-gray-500">Pertemuan {{ $m->pertemuan_ke }}</p>
                         </div>
                     </div>
@@ -84,49 +75,10 @@
             </div>
         @endforelse
     </div>
-
-    {{-- Materi List View --}}
-    <div id="view-list" class="hidden space-y-3">
-        @forelse($materi as $m)
-            <a href="{{ route('siswa.materi.show', [$kelas, $m]) }}" class="materi-item flex items-center gap-4 bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-all group" data-mapel="{{ $m->mapel_id }}" data-search="{{ strtolower($m->judul) }}">
-                <div class="w-10 h-10 rounded-lg {{ $m->tipe === 'video' ? 'bg-red-100 text-red-600' : ($m->tipe === 'file' ? 'bg-yellow-100 text-yellow-600' : 'bg-blue-100 text-blue-600') }} flex items-center justify-center flex-shrink-0">
-                    @if($m->tipe === 'video')
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    @elseif($m->tipe === 'file')
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    @else
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
-                    @endif
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 truncate">{{ $m->judul }}</p>
-                    <p class="text-xs text-gray-500 mt-0.5">Pertemuan {{ $m->pertemuan_ke }} • {{ $m->mapel?->nama_mapel }} • {{ $m->guru?->name }}</p>
-                </div>
-                <span class="text-xs text-gray-400 flex-shrink-0 hidden sm:block">{{ $m->created_at->translatedFormat('d M Y') }}</span>
-                <svg class="w-5 h-5 text-gray-300 group-hover:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </a>
-        @empty
-            <div class="py-16 text-center">
-                <svg class="w-16 h-16 text-gray-200 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                <p class="mt-3 text-gray-500 text-sm">Belum ada materi</p>
-            </div>
-        @endforelse
-    </div>
 </div>
 
 @push('scripts')
 <script>
-function setView(view) {
-    document.getElementById('view-grid').classList.toggle('hidden', view !== 'grid');
-    document.getElementById('view-list').classList.toggle('hidden', view !== 'list');
-    document.getElementById('btn-grid').classList.toggle('bg-blue-50', view === 'grid');
-    document.getElementById('btn-grid').classList.toggle('text-blue-600', view === 'grid');
-    document.getElementById('btn-grid').classList.toggle('text-gray-400', view !== 'grid');
-    document.getElementById('btn-list').classList.toggle('bg-blue-50', view === 'list');
-    document.getElementById('btn-list').classList.toggle('text-blue-600', view === 'list');
-    document.getElementById('btn-list').classList.toggle('text-gray-400', view !== 'list');
-}
-
 function filterMateri() {
     const search = document.getElementById('searchMateri').value.toLowerCase();
     const mapel = document.getElementById('filterMapel').value;

@@ -43,8 +43,9 @@ class AdminMapelController extends Controller
     public function create(): \Illuminate\View\View
     {
         $kategoris = ['normatif', 'adaptif', 'produktif'];
+        $jurusans = \App\Models\Jurusan::where('aktif', true)->orderBy('nama')->get();
 
-        return view('admin.mapel.create', compact('kategoris'));
+        return view('admin.mapel.create', compact('kategoris', 'jurusans'));
     }
 
     /**
@@ -86,8 +87,9 @@ class AdminMapelController extends Controller
     public function edit(Mapel $mapel): \Illuminate\View\View
     {
         $kategoris = ['normatif', 'adaptif', 'produktif'];
+        $jurusans = \App\Models\Jurusan::where('aktif', true)->orderBy('nama')->get();
 
-        return view('admin.mapel.edit', compact('mapel', 'kategoris'));
+        return view('admin.mapel.edit', compact('mapel', 'kategoris', 'jurusans'));
     }
 
     /**

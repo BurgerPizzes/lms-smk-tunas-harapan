@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
+use App\Models\ClassGuruMapel;
 use App\Models\Jurusan;
 use App\Models\Kelas;
 use App\Models\User;
@@ -113,7 +115,27 @@ class AdminUserController extends Controller
     {
         $user->load(['jurusan', 'kelas', 'roles']);
 
-        return view('admin.users.show', compact('user'));
+        // Related data for siswa
+        $enrolledClasses = null;
+        $teachingSubjects = null;
+        $activityLogs = null;
+
+        if ($user->hasRole('siswa')) {
+            $enrolledClasses = $user->enrolledClasses()->with(['jurusan', 'waliKelas'])->get();
+        }
+
+        if ($user->hasRole('guru')) {
+            $teachingSubjects = ClassGuruMapel::where('guru_id', $user->id)
+                ->with(['mapel', 'kelas', 'tahunAjaran'])
+                ->get();
+        }
+
+        $activityLogs = ActivityLog::where('user_id', $user->id)
+            ->latest()
+            ->take(10)
+            ->get();
+
+        return view('admin.users.show', compact('user', 'enrolledClasses', 'teachingSubjects', 'activityLogs'));
     }
 
     /**

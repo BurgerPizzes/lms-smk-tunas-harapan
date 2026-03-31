@@ -42,13 +42,13 @@
                         </span>
                     </td>
                     <td class="px-5 py-4">
-                        @if($ta->is_active)
+                        @if($ta->aktif)
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                                 <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse"></span>Aktif
                             </span>
                         @else
                             <form method="POST" action="{{ route('admin.tahun-ajaran.set-active', $ta->id) }}" class="inline" onsubmit="return confirm('Yakin ingin mengaktifkan tahun ajaran ini? Tahun ajaran lain akan dinonaktifkan.')">
-                                @csrf @method('PATCH')
+                                @csrf @method('PUT')
                                 <button type="submit" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-indigo-100 hover:text-indigo-700 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-400 transition-colors cursor-pointer">
                                     Set Aktif
                                 </button>

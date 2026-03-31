@@ -34,11 +34,13 @@
     </a>
 
     <!-- Class Cards -->
-    @forelse($kelasList ?? [] as $kelas)
+    @forelse($guruMapels ?? [] as $kelasId => $mapels)
+    @foreach($mapels as $gm)
+    @php $kelas = $gm->kelas; @endphp
     <a href="{{ route('guru.kelas.show', $kelas->id) }}" class="group block">
         <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-all duration-200">
             <!-- Cover -->
-            <div class="h-32 relative {{ $coverColors[$loop->index % count($coverColors ?? ['from-blue-500 to-blue-600', 'from-green-500 to-emerald-600', 'from-purple-500 to-violet-600', 'from-amber-500 to-orange-600', 'from-rose-500 to-pink-600', 'from-cyan-500 to-teal-600'])] ?? 'from-blue-500 to-blue-600' }} bg-gradient-to-br">
+            <div class="h-32 relative bg-gradient-to-br from-blue-500 to-blue-600">
                 @if($kelas->cover_image)
                     <img src="{{ Storage::url($kelas->cover_image) }}" alt="{{ $kelas->nama }}" class="w-full h-full object-cover">
                 @endif
@@ -52,14 +54,15 @@
             <!-- Info -->
             <div class="p-4">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Kelas {{ $kelas->tingkat }}</span>
-                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ $kelas->tahun_ajaran ?? '-' }}</span>
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Kelas {{ $kelas->tingkat ?? '-' }}</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ $kelas->tahunAjaran->nama ?? '-' }}</span>
                 </div>
                 <div class="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
                     <div class="flex items-center space-x-1">
                         <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
-                        <span>{{ $kelas->siswa_count ?? $kelas->siswa->count() }} siswa</span>
+                        <span>{{ $kelas->siswas->count() }} siswa</span>
                     </div>
+                    <span class="text-xs text-indigo-600 dark:text-indigo-400 font-medium">{{ $gm->mapel->nama ?? '' }}</span>
                 </div>
                 <!-- Copyable Code -->
                 <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
@@ -74,11 +77,12 @@
             </div>
         </div>
     </a>
+    @endforeach
     @empty
     @endforelse
 </div>
 
-@if(!isset($kelasList) || $kelasList->isEmpty())
+@elseif(!$guruMapels || $guruMapels->isEmpty())
 <div class="text-center py-16 mt-4">
     <div class="inline-flex items-center justify-center w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
         <svg class="w-10 h-10 text-gray-400 dark:text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" /></svg>

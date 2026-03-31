@@ -32,6 +32,7 @@ class AdminTahunAjaranController extends Controller
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
+            'nama'         => ['required', 'string', 'max:255'],
             'tahun_mulai' => ['required', 'integer', 'min:2000', 'max:2100'],
             'tahun_selesai' => ['required', 'integer', 'min:2000', 'max:2100', 'gt:tahun_mulai'],
             'semester'   => ['required', 'string', 'in:ganjil,genap'],
@@ -46,11 +47,32 @@ class AdminTahunAjaranController extends Controller
             $validated['aktif'] = false;
         }
 
+        // Auto-generate nama if not provided or build from fields
+        if (empty(trim($validated['nama']))) {
+            $validated['nama'] = $validated['tahun_mulai'] . '/' . $validated['tahun_selesai'] . ' ' . ucfirst($validated['semester']);
+        }
+
         TahunAjaran::create($validated);
 
         return redirect()
             ->route('admin.tahun-ajaran.index')
             ->with('success', 'Tahun Ajaran berhasil ditambahkan.');
+    }
+
+    /**
+     * Display the specified tahun ajaran with related data.
+     */
+    public function show(TahunAjaran $tahunAjaran): \Illuminate\View\View
+    {
+        $tahunAjaran->load(['guruMapel.guru', 'guruMapel.mapel', 'guruMapel.kelas']);
+
+        $stats = [
+            'totalAlokasi' => $tahunAjaran->guruMapel()->count(),
+            'totalKelas'   => $tahunAjaran->guruMapel()->distinct('class_id')->count('class_id'),
+            'totalGuru'    => $tahunAjaran->guruMapel()->distinct('guru_id')->count('guru_id'),
+        ];
+
+        return view('admin.tahun-ajaran.show', compact('tahunAjaran', 'stats'));
     }
 
     /**
@@ -67,6 +89,7 @@ class AdminTahunAjaranController extends Controller
     public function update(Request $request, TahunAjaran $tahunAjaran): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
+            'nama'         => ['required', 'string', 'max:255'],
             'tahun_mulai' => ['required', 'integer', 'min:2000', 'max:2100'],
             'tahun_selesai' => ['required', 'integer', 'min:2000', 'max:2100', 'gt:tahun_mulai'],
             'semester'   => ['required', 'string', 'in:ganjil,genap'],
@@ -82,6 +105,11 @@ class AdminTahunAjaranController extends Controller
         } else {
             // Prevent deactivating if this is the only active one
             $validated['aktif'] = $tahunAjaran->aktif;
+        }
+
+        // Auto-generate nama if not provided
+        if (empty(trim($validated['nama']))) {
+            $validated['nama'] = $validated['tahun_mulai'] . '/' . $validated['tahun_selesai'] . ' ' . ucfirst($validated['semester']);
         }
 
         $tahunAjaran->update($validated);

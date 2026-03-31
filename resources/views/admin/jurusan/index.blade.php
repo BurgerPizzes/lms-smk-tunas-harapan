@@ -40,7 +40,7 @@
                     <td class="px-5 py-4 text-sm text-gray-600 dark:text-gray-400 text-center">{{ $jurusan->kelas_count ?? $jurusan->kelas->count() }}</td>
                     <td class="px-5 py-4 text-sm text-gray-600 dark:text-gray-400 text-center">{{ $jurusan->siswa_count ?? $jurusan->siswa->count() }}</td>
                     <td class="px-5 py-4">
-                        @if($jurusan->is_active)
+                        @if($jurusan->aktif)
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                                 <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>Aktif
                             </span>
@@ -54,7 +54,7 @@
                                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
                             </a>
                             <form method="POST" action="{{ route('admin.jurusan.toggle-status', $jurusan->id) }}" class="inline" onsubmit="return confirm('Yakin ingin mengubah status jurusan ini?')">
-                                @csrf @method('PATCH')
+                                @csrf @method('PUT')
                                 <button type="submit" class="p-1.5 text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors" title="Toggle Status">
                                     <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
                                 </button>

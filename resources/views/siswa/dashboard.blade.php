@@ -113,7 +113,7 @@
                         </svg>
                         Deadline Mendatang
                     </h2>
-                    <a href="{{ route('siswa.tugas.index') }}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Lihat Semua</a>
+                    <a href="{{ route('siswa.kelas.index') }}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Lihat Kelas</a>
                 </div>
                 <div class="divide-y divide-gray-50">
                     @forelse ($upcomingTugas as $tugas)
@@ -123,13 +123,13 @@
                                     <a href="{{ route('siswa.tugas.show', $tugas) }}" class="text-sm font-semibold text-gray-900 hover:text-blue-600 truncate block">
                                         {{ $tugas->judul }}
                                     </a>
-                                    <p class="text-xs text-gray-500 mt-1">{{ $tugas->kelas?->nama_kelas }} — {{ $tugas->mapel?->nama_mapel }}</p>
+                                    <p class="text-xs text-gray-500 mt-1">{{ $tugas->kelas?->nama_kelas ?? '-' }} — {{ $tugas->mapel?->nama ?? '-' }}</p>
                                 </div>
                                 <div class="flex items-center gap-3 flex-shrink-0">
                                     <div class="text-right">
-                                        <p class="text-xs font-medium text-gray-500">{{ $tugas->deadline->translatedFormat('d M Y, H:i') }}</p>
+                                        <p class="text-xs font-medium text-gray-500">{{ $tugas->deadline?->translatedFormat('d M Y, H:i') }}</p>
                                         @php
-                                            $diff = now()->diffInHours($tugas->deadline, false);
+                                            $diff = $tugas->deadline ? now()->diffInHours($tugas->deadline, false) : 0;
                                         @endphp
                                         <p class="text-xs font-semibold {{ $diff <= 24 ? 'text-red-600' : 'text-gray-700' }}">
                                             {{ $diff > 0 ? $diff . ' jam lagi' : 'Sudah lewat!' }}
@@ -187,7 +187,7 @@
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-3">
                                         <p class="text-sm font-medium text-gray-900">{{ $grade->tugas?->judul }}</p>
-                                        <p class="text-xs text-gray-500">{{ $grade->updated_at->translatedFormat('d M Y') }}</p>
+                                        <p class="text-xs text-gray-500">{{ $grade->updated_at?->translatedFormat('d M Y') }}</p>
                                     </td>
                                     <td class="px-6 py-3 text-sm text-gray-600">{{ $grade->tugas?->kelas?->nama_kelas }}</td>
                                     <td class="px-6 py-3 text-center">
@@ -226,12 +226,12 @@
                 </div>
                 <div class="divide-y divide-gray-50 max-h-96 overflow-y-auto">
                     @forelse ($notifications as $notif)
-                        <div class="px-6 py-3 hover:bg-gray-50 transition-colors {{ !$notif->read_at ? 'bg-blue-50/50' : '' }}">
+                        <div class="px-6 py-3 hover:bg-gray-50 transition-colors {{ !$notif->is_read ? 'bg-blue-50/50' : '' }}">
                             <div class="flex items-start gap-3">
-                                <div class="w-2 h-2 rounded-full mt-2 flex-shrink-0 {{ !$notif->read_at ? 'bg-blue-500' : 'bg-transparent' }}"></div>
+                                <div class="w-2 h-2 rounded-full mt-2 flex-shrink-0 {{ !$notif->is_read ? 'bg-blue-500' : 'bg-transparent' }}"></div>
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-sm text-gray-900">{{ $notif->data['message'] ?? $notif->title ?? 'Notifikasi baru' }}</p>
-                                    <p class="text-xs text-gray-400 mt-1">{{ $notif->created_at->diffForHumans() }}</p>
+                                    <p class="text-sm text-gray-900">{{ $notif->message ?? $notif->title ?? 'Notifikasi baru' }}</p>
+                                    <p class="text-xs text-gray-400 mt-1">{{ $notif->created_at?->diffForHumans() }}</p>
                                 </div>
                             </div>
                         </div>
@@ -256,17 +256,17 @@
                         </svg>
                         <span class="text-sm font-medium text-blue-700 group-hover:text-blue-800">Bergabung Kelas</span>
                     </a>
-                    <a href="{{ route('siswa.tugas.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors group">
+                    <a href="{{ route('siswa.submissions.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors group">
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
-                        <span class="text-sm font-medium text-green-700 group-hover:text-green-800">Lihat Tugas</span>
+                        <span class="text-sm font-medium text-green-700 group-hover:text-green-800">Pengumpulan Saya</span>
                     </a>
-                    <a href="{{ route('siswa.quiz.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors group">
+                    <a href="{{ route('siswa.nilai.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors group">
                         <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        <span class="text-sm font-medium text-purple-700 group-hover:text-purple-800">Lihat Quiz</span>
+                        <span class="text-sm font-medium text-purple-700 group-hover:text-purple-800">Lihat Nilai</span>
                     </a>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.guru')
 @section('title', 'Edit Kelas')
 @section('page-content')
 

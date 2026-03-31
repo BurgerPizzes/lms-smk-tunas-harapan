@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ClassGuruMapel;
 use App\Models\Kelas;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -28,10 +29,11 @@ class AdminKelasController extends Controller
      */
     public function create(): \Illuminate\View\View
     {
-        $gurus = User::role('guru')->where('is_active', true)->orderBy('name')->get();
+        $guruList = User::role('guru')->where('is_active', true)->orderBy('name')->get();
         $jurusans = \App\Models\Jurusan::where('aktif', true)->orderBy('nama')->get();
+        $tahunAjaran = \App\Models\TahunAjaran::orderBy('tahun_mulai', 'desc')->get();
 
-        return view('admin.kelas.create', compact('gurus', 'jurusans'));
+        return view('admin.kelas.create', compact('guruList', 'jurusans', 'tahunAjaran'));
     }
 
     /**
@@ -66,7 +68,21 @@ class AdminKelasController extends Controller
     {
         $kelas->load(['waliKelas', 'jurusan', 'siswas', 'gurus']);
 
-        return view('admin.kelas.show', compact('kelas'));
+        // Guru pengampu for this kelas
+        $guruPengampu = ClassGuruMapel::where('class_id', $kelas->id)
+            ->with(['guru', 'mapel', 'tahunAjaran'])
+            ->get();
+
+        // Stats for the kelas
+        $stats = [
+            'totalMateri'   => $kelas->materis()->count(),
+            'totalTugas'    => $kelas->tugases()->count(),
+            'averageGrade'  => $kelas->submissions()->whereNotNull('nilai')->avg('nilai')
+                ? round($kelas->submissions()->whereNotNull('nilai')->avg('nilai'), 1)
+                : '-',
+        ];
+
+        return view('admin.kelas.show', compact('kelas', 'guruPengampu', 'stats'));
     }
 
     /**
@@ -74,10 +90,11 @@ class AdminKelasController extends Controller
      */
     public function edit(Kelas $kelas): \Illuminate\View\View
     {
-        $gurus = User::role('guru')->where('is_active', true)->orderBy('name')->get();
+        $guruList = User::role('guru')->where('is_active', true)->orderBy('name')->get();
         $jurusans = \App\Models\Jurusan::where('aktif', true)->orderBy('nama')->get();
+        $tahunAjaran = \App\Models\TahunAjaran::orderBy('tahun_mulai', 'desc')->get();
 
-        return view('admin.kelas.edit', compact('kelas', 'gurus', 'jurusans'));
+        return view('admin.kelas.edit', compact('kelas', 'guruList', 'jurusans', 'tahunAjaran'));
     }
 
     /**

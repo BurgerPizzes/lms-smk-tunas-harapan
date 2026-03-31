@@ -134,7 +134,7 @@
                     @else
                         <span class="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-full">{{ $tugas->deadline->diffForHumans() }}</span>
                     @endif
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $tugas->submitted_count ?? 0 }}/{{ $tugas->kelas->siswa_count ?? 0 }} dikumpulkan</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $tugas->submissions_count ?? 0 }}/{{ $tugas->kelas ? $tugas->kelas->siswas->count() : 0 }} dikumpulkan</p>
                 </div>
             </a>
             @empty

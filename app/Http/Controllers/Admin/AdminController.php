@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
@@ -97,7 +98,9 @@ class AdminController extends Controller
             'mail_from'   => config('mail.from.address'),
         ];
 
-        return view('admin.settings', compact('settings'));
+        $tahunAjaran = TahunAjaran::orderBy('tahun_mulai', 'desc')->get();
+
+        return view('admin.settings', compact('settings', 'tahunAjaran'));
     }
 
     /**

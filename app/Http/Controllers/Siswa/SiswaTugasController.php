@@ -23,7 +23,7 @@ class SiswaTugasController extends Controller
 
         $query = Tugas::where('class_id', $kelas->id)
             ->where('is_published', true)
-            ->with(['mapel']);
+            ->with(['mapel', 'comments']);
 
         if ($request->filled('mapel_id')) {
             $query->where('mapel_id', $request->input('mapel_id'));
@@ -78,7 +78,7 @@ class SiswaTugasController extends Controller
 
         $siswa = Auth::user();
 
-        $tugas->load(['kelas', 'mapel', 'guru']);
+        $tugas->load(['kelas', 'mapel', 'guru', 'comments.user']);
 
         $submission = Submission::where('tugas_id', $tugas->id)
             ->where('siswa_id', $siswa->id)
@@ -109,7 +109,7 @@ class SiswaTugasController extends Controller
         ]);
 
         if (empty($validated['jawaban']) && ! $request->hasFile('file')) {
-            return back()->withErrors('Anda harus mengisi jawaban atau mengunggah file.');
+            return back()->withErrors('Anda harus mengisi jawaban atau menggah file.');
         }
 
         $submissionData = [

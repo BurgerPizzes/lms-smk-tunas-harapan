@@ -22,7 +22,7 @@ class GuruDashboardController extends Controller
         $guru = Auth::user();
 
         // Classes assigned to this guru
-        $assignedClasses = GuruMapel::with(['kelas', 'mapel', 'tahunAjaran'])
+        $assignedClasses = GuruMapel::with(['kelas.jurusan', 'mapel', 'tahunAjaran'])
             ->where('guru_id', $guru->id)
             ->get();
 
@@ -30,15 +30,16 @@ class GuruDashboardController extends Controller
         $kelasIds = $assignedClasses->pluck('class_id')->unique()->filter()->toArray();
         $mapelIds = $assignedClasses->pluck('mapel_id')->unique()->filter()->toArray();
 
-        // Upcoming deadlines (tugas that are still open and have ungraded submissions)
-        $upcomingDeadlines = Tugas::whereIn('class_id', $kelasIds)
+        // Upcoming deadlines with eager-loaded kelas and mapel
+        $upcomingDeadlines = Tugas::with(['kelas', 'mapel'])
+            ->whereIn('class_id', $kelasIds)
             ->where('deadline', '>=', now())
             ->orderBy('deadline')
             ->take(10)
             ->get();
 
-        // Recent submissions that need grading
-        $recentSubmissions = Submission::with(['tugas', 'siswa'])
+        // Recent submissions that need grading (eager load tugas.kelas to avoid N+1)
+        $recentSubmissions = Submission::with(['tugas.kelas', 'tugas.mapel', 'siswa'])
             ->whereHas('tugas', function ($query) use ($kelasIds, $mapelIds) {
                 $query->whereIn('class_id', $kelasIds)
                       ->whereIn('mapel_id', $mapelIds);
@@ -73,10 +74,49 @@ class GuruDashboardController extends Controller
         // Total materi created
         $totalMateri = Materi::where('guru_id', $guru->id)->count();
 
+        // Materi created this week
+        $materiGrowth = Materi::where('guru_id', $guru->id)
+            ->where('created_at', '>=', now()->startOfWeek())
+            ->count();
+
         // Total tugas created
         $totalTugas = Tugas::whereIn('class_id', $kelasIds)
             ->whereIn('mapel_id', $mapelIds)
             ->count();
+
+        // Active tugas (deadline not passed)
+        $tugasAktif = Tugas::whereIn('class_id', $kelasIds)
+            ->whereIn('mapel_id', $mapelIds)
+            ->where('deadline', '>=', now())
+            ->count();
+
+        // Deadlines within 24 hours
+        $deadlineTerdekat = Tugas::whereIn('class_id', $kelasIds)
+            ->whereIn('mapel_id', $mapelIds)
+            ->where('deadline', '>=', now())
+            ->where('deadline', '<=', now()->addHours(24))
+            ->count();
+
+        // Total unique kelas
+        $totalKelas = count($kelasIds);
+
+        // Total siswa across all classes
+        $totalSiswa = \App\Models\Kelas::withCount('siswas')
+            ->whereIn('id', $kelasIds)
+            ->get()
+            ->sum('siswas_count');
+
+        // Build stats array expected by the view
+        $stats = [
+            'totalKelas'     => $totalKelas,
+            'totalSiswa'     => $totalSiswa,
+            'totalMateri'    => $totalMateri,
+            'materiGrowth'   => $materiGrowth,
+            'totalTugas'     => $totalTugas,
+            'tugasAktif'     => $tugasAktif,
+            'perluDinilai'   => $ungradedCount,
+            'deadlineTerdekat' => $deadlineTerdekat,
+        ];
 
         return view('guru.dashboard', compact(
             'guru',
@@ -86,7 +126,8 @@ class GuruDashboardController extends Controller
             'ungradedCount',
             'attendanceSummary',
             'totalMateri',
-            'totalTugas'
+            'totalTugas',
+            'stats'
         ));
     }
 }

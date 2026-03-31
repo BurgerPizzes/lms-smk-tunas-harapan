@@ -84,7 +84,9 @@
                     <div class="flex-1">
                         <form method="POST" action="{{ route('guru.diskusi.store') }}">
                             @csrf
-                            <textarea name="pesan" rows="2" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none" placeholder="Bagikan pengumuman ke kelas..."></textarea>
+                            <input type="hidden" name="commentable_type" value="App\Models\Kelas">
+                            <input type="hidden" name="commentable_id" value="{{ $kelas->id }}">
+                            <textarea name="body" rows="2" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none" placeholder="Bagikan pengumuman ke kelas..."></textarea>
                             <div class="flex items-center justify-end mt-2 space-x-2">
                                 <button type="button" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
                                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" /></svg>
@@ -112,22 +114,22 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center space-x-2 mb-1">
                             <span class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                {{ $item->guru->name ?? auth()->user()->name }} memposting {{ $item->type === 'materi' ? 'materi' : ($item->type === 'tugas' ? 'tugas' : 'pengumuman') }}
+                                {{ $item['user_name'] ?? auth()->user()->name }} memposting {{ $item['type'] === 'materi' ? 'materi' : ($item['type'] === 'tugas' ? 'tugas' : 'pengumuman') }}
                             </span>
                             <span class="text-xs text-gray-400 dark:text-gray-500">&middot;</span>
-                            <span class="text-xs text-gray-400 dark:text-gray-500">{{ $item->created_at->diffForHumans() }}</span>
+                            <span class="text-xs text-gray-400 dark:text-gray-500">{{ $item['created_at']->diffForHumans() }}</span>
                         </div>
-                        <a href="{{ $item->type === 'materi' ? route('guru.materi.show', $item->id) : route('guru.tugas.show', $item->id) }}" class="text-base font-semibold text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{{ $item->judul ?? $item->pesan ?? '-' }}</a>
-                        @if($item->type === 'tugas')
+                        <a href="{{ $item['type'] === 'materi' ? route('guru.materi.show', $item['id']) : route('guru.tugas.show', $item['id']) }}" class="text-base font-semibold text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{{ $item['title'] ?? '-' }}</a>
+                        @if($item['type'] === 'tugas')
                             <div class="flex items-center space-x-3 mt-2 text-xs text-gray-500 dark:text-gray-400">
                                 <span class="flex items-center space-x-1">
                                     <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-                                    <span>Deadline: {{ $item->deadline?->format('d M Y, H:i') ?? '-' }}</span>
+                                    <span>Deadline: {{ $item['deadline']?->format('d M Y, H:i') ?? '-' }}</span>
                                 </span>
                             </div>
                         @endif
-                        @if(isset($item->deskripsi) && $item->deskripsi)
-                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{{ Str::limit($item->deskripsi, 150) }}</p>
+                        @if(isset($item['deskripsi']) && $item['deskripsi'])
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{{ Str::limit($item['deskripsi'], 150) }}</p>
                         @endif
                     </div>
                 </div>

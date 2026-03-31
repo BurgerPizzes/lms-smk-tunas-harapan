@@ -92,6 +92,7 @@ class GuruKelasController extends Controller
                 'mapel'     => $item->mapel?->nama,
                 'user_name' => $item->guru?->name,
                 'created_at' => $item->created_at,
+                'deskripsi' => $item->deskripsi,
             ]);
 
         $tugasFeed = Tugas::where('kelas_id', $kelas->id)
@@ -107,12 +108,55 @@ class GuruKelasController extends Controller
                 'user_name' => $item->guru?->name,
                 'created_at' => $item->created_at,
                 'deadline'  => $item->deadline,
+                'deskripsi' => $item->deskripsi,
             ]);
 
         // Merge and sort by created_at
-        $feed = $materiFeed->merge($tugasFeed)->sortByDesc('created_at')->values();
+        $feedItems = $materiFeed->merge($tugasFeed)->sortByDesc('created_at')->values();
 
-        return view('guru.kelas.show', compact('kelas', 'feed'));
+        // Materi list
+        $materiList = Materi::where('kelas_id', $kelas->id)
+            ->with('mapel')
+            ->latest()
+            ->take(10)
+            ->get();
+
+        // Tugas list
+        $tugasList = Tugas::where('kelas_id', $kelas->id)
+            ->with('mapel')
+            ->latest()
+            ->take(10)
+            ->get();
+
+        // Siswa list
+        $siswaList = $kelas->siswas()->orderBy('name')->get();
+
+        // Absensi list
+        $absensiList = \App\Models\Attendance::where('kelas_id', $kelas->id)
+            ->with('mapel')
+            ->latest()
+            ->take(10)
+            ->get();
+
+        // Quiz list
+        $quizList = Quiz::where('kelas_id', $kelas->id)
+            ->with('mapel')
+            ->withCount('questions')
+            ->latest()
+            ->take(10)
+            ->get();
+
+        // Mapel filter options
+        $mapels = Mapel::whereHas('guruMapel', function ($query) use ($kelas) {
+            $query->where('kelas_id', $kelas->id);
+        })->orderBy('nama')->get();
+
+        // Guru list (teachers assigned to this class)
+        $guruList = \App\Models\User::whereHas('guruMapel', function ($query) use ($kelas) {
+            $query->where('kelas_id', $kelas->id);
+        })->get();
+
+        return view('guru.kelas.show', compact('kelas', 'feedItems', 'materiList', 'tugasList', 'siswaList', 'absensiList', 'quizList', 'mapels', 'guruList'));
     }
 
     /**
@@ -171,9 +215,14 @@ class GuruKelasController extends Controller
     {
         $this->authorizeGuruAccess($kelas);
 
-        $siswa = $kelas->siswas()->orderBy('name')->paginate(20);
+        $siswaList = $kelas->siswas()->orderBy('name')->paginate(20);
 
-        return view('guru.kelas.members', compact('kelas', 'siswa'));
+        // Guru list (teachers assigned to this class)
+        $guruList = \App\Models\User::whereHas('guruMapel', function ($query) use ($kelas) {
+            $query->where('kelas_id', $kelas->id);
+        })->get();
+
+        return view('guru.kelas.members', compact('kelas', 'siswaList', 'guruList'));
     }
 
     /**

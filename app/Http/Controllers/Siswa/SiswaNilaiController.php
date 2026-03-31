@@ -108,7 +108,16 @@ class SiswaNilaiController extends Controller
             ? round($submissions->avg('nilai'), 1)
             : null;
 
-        return view('siswa.nilai.by-class', compact('kelas', 'submissions', 'mapelGrades', 'classAverage'));
+        // Mapel list for filter buttons
+        $mapelList = \App\Models\Mapel::whereHas('tugas', function ($query) use ($kelas) {
+            $query->where('class_id', $kelas->id);
+        })->orderBy('nama')->get();
+
+        $lulusCount = $submissions->where('nilai', '>=', 75)->count();
+        $totalNilai = $submissions->count();
+        $rataRata = $classAverage;
+
+        return view('siswa.nilai.by-class', compact('kelas', 'submissions', 'mapelGrades', 'classAverage', 'mapelList', 'rataRata', 'lulusCount', 'totalNilai'));
     }
 
     /**
