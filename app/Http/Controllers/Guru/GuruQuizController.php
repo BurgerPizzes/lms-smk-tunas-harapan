@@ -109,6 +109,8 @@ class GuruQuizController extends Controller
 
         $quiz->load(['kelas', 'mapel', 'guru', 'questions' => function ($query) {
             $query->orderBy('urutan');
+        }, 'attempts' => function ($query) {
+            $query->with('siswa');
         }]);
 
         $attemptStats = QuizAttempt::where('quiz_id', $quiz->id)

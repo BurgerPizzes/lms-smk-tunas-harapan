@@ -77,8 +77,8 @@
 
                 <div class="md:col-span-2">
                     <label for="file" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Lampiran</label>
-                    @if($tugas->file)
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">File saat ini: <a href="{{ Storage::url($tugas->file) }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">{{ pathinfo($tugas->file, PATHINFO_BASENAME) }}</a></p>
+                    @if($tugas->file_attachment)
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">File saat ini: <a href="{{ Storage::url($tugas->file_attachment) }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">{{ pathinfo($tugas->file_attachment, PATHINFO_BASENAME) }}</a></p>
                     @endif
                     <input type="file" name="file" class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 dark:file:bg-indigo-900/30 dark:file:text-indigo-400 file:cursor-pointer">
                 </div>

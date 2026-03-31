@@ -78,7 +78,7 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                     @forelse($submissions ?? [] as $index => $sub)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors grading-row" data-status="{{ $sub->file ? ($sub->is_late ? 'late' : 'submitted') : 'not_submitted' }}" data-name="{{ strtolower($sub->siswa->name ?? '') }}" data-graded="{{ $sub->nilai !== null ? 'graded' : 'ungraded' }}">
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors grading-row" data-status="{{ $sub->file_path ? ($sub->is_late ? 'late' : 'submitted') : 'not_submitted' }}" data-name="{{ strtolower($sub->siswa->name ?? '') }}" data-graded="{{ $sub->nilai !== null ? 'graded' : 'ungraded' }}">
                         <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{{ $index + 1 }}</td>
                         <td class="px-4 py-3">
                             <div class="flex items-center space-x-2">

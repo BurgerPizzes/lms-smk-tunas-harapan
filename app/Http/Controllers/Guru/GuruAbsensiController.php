@@ -94,6 +94,8 @@ class GuruAbsensiController extends Controller
         ]);
 
         $validated['statuses'] = $statuses;
+
+        $exists = Attendance::where('class_id', $kelas->id)
             ->where('mapel_id', $validated['mapel_id'])
             ->whereDate('tanggal', $validated['tanggal'])
             ->exists();

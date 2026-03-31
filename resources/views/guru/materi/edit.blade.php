@@ -93,8 +93,8 @@
 
             <div id="tipe-file" class="tipe-content {{ old('tipe', $materi->tipe) !== 'file' ? 'hidden' : '' }}">
                 <label for="file" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Upload File</label>
-                @if($materi->file)
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">File saat ini: {{ pathinfo($materi->file, PATHINFO_BASENAME) }}</p>
+                @if($materi->file_path)
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">File saat ini: {{ pathinfo($materi->file_path, PATHINFO_BASENAME) }}</p>
                 @endif
                 <input type="file" name="file" class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 dark:file:bg-indigo-900/30 dark:file:text-indigo-400 file:cursor-pointer">
             </div>

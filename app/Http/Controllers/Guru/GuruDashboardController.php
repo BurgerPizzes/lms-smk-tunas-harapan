@@ -32,6 +32,7 @@ class GuruDashboardController extends Controller
 
         // Upcoming deadlines with eager-loaded kelas (with siswas) and mapel
         $upcomingDeadlines = Tugas::with(['kelas.siswas', 'mapel'])
+            ->withCount('submissions')
             ->whereIn('class_id', $kelasIds)
             ->where('deadline', '>=', now())
             ->orderBy('deadline')

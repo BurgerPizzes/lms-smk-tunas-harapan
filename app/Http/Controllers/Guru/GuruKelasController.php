@@ -37,8 +37,9 @@ class GuruKelasController extends Controller
     {
         $jurusans = \App\Models\Jurusan::where('aktif', true)->orderBy('nama')->get();
         $tahunAjaran = \App\Models\TahunAjaran::where('aktif', true)->first();
+        $tahunAjarans = \App\Models\TahunAjaran::orderBy('tahun_mulai', 'desc')->get();
 
-        return view('guru.kelas.create', compact('jurusans', 'tahunAjaran'));
+        return view('guru.kelas.create', compact('jurusans', 'tahunAjaran', 'tahunAjarans'));
     }
 
     /**
