@@ -127,6 +127,26 @@ class GuruQuizController extends Controller
     }
 
     /**
+     * Show the form for adding a question to a quiz.
+     */
+    public function createQuestion(Quiz $quiz): \Illuminate\View\View
+    {
+        $this->authorizeGuruAccess($quiz->kelas);
+
+        return view('guru.quiz.add-question', compact('quiz'));
+    }
+
+    /**
+     * Show the form for editing an existing question.
+     */
+    public function editQuestion(Quiz $quiz, QuizQuestion $question): \Illuminate\View\View
+    {
+        $this->authorizeGuruAccess($quiz->kelas);
+
+        return view('guru.quiz.add-question', ['quiz' => $quiz, 'soal' => $question]);
+    }
+
+    /**
      * Add a question to a quiz.
      */
     public function addQuestion(Request $request, Quiz $quiz): \Illuminate\Http\RedirectResponse

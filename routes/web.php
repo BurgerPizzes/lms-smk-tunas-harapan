@@ -245,7 +245,9 @@ Route::middleware('auth')->group(function () {
         Route::get('kelas/{kelasId}/quiz/create', [GuruQuizController::class, 'create'])->name('kelas.quiz.create');
         Route::post('kelas/{kelasId}/quiz', [GuruQuizController::class, 'store'])->name('kelas.quiz.store');
         Route::get('quiz/{id}', [GuruQuizController::class, 'show'])->name('quiz.show');
-        Route::post('quiz/{id}/add-question', [GuruQuizController::class, 'addQuestion'])->name('quiz.add-question');
+        Route::get('quiz/{id}/add-question', [GuruQuizController::class, 'createQuestion'])->name('quiz.add-question');
+        Route::post('quiz/{id}/add-question', [GuruQuizController::class, 'addQuestion'])->name('quiz.add-question.store');
+        Route::get('quiz/{quizId}/question/{questionId}/edit', [GuruQuizController::class, 'editQuestion'])->name('quiz.edit-question');
         Route::put('quiz/{quizId}/question/{questionId}', [GuruQuizController::class, 'updateQuestion'])->name('quiz.update-question');
         Route::delete('quiz/{quizId}/question/{questionId}', [GuruQuizController::class, 'deleteQuestion'])->name('quiz.delete-question');
         Route::get('quiz/{id}/results', [GuruQuizController::class, 'results'])->name('quiz.results');
