@@ -72,18 +72,28 @@ class GuruAbsensiController extends Controller
     {
         $this->authorizeGuruAccess($kelas);
 
+        // View sends absensi[$siswaId] and keterangan[$siswaId]
+        // Controller expects statuses[] array - transform here
+        $statuses = [];
+        foreach ($request->input('absensi', []) as $siswaId => $status) {
+            $statuses[] = [
+                'user_id' => $siswaId,
+                'status' => $status,
+                'keterangan' => $request->input("keterangan.{$siswaId}"),
+            ];
+        }
+
         $validated = $request->validate([
             'mapel_id' => ['required', 'exists:mapels,id'],
             'tanggal'  => ['required', 'date', 'before_or_equal:today'],
             'catatan' => ['nullable', 'string', 'max:500'],
-            'statuses' => ['required', 'array'],
+            'statuses' => ['required', 'array', 'min:1'],
             'statuses.*.user_id' => ['required', 'exists:users,id'],
             'statuses.*.status'  => ['required', 'string', 'in:hadir,izin,sakit,alpha'],
             'statuses.*.keterangan' => ['nullable', 'string', 'max:255'],
         ]);
 
-        // Check for duplicate attendance (same class, mapel, date)
-        $exists = Attendance::where('class_id', $kelas->id)
+        $validated['statuses'] = $statuses;
             ->where('mapel_id', $validated['mapel_id'])
             ->whereDate('tanggal', $validated['tanggal'])
             ->exists();
@@ -118,7 +128,7 @@ class GuruAbsensiController extends Controller
         }
 
         return redirect()
-            ->route('guru.absensi.index', $kelas)
+            ->route('guru.kelas.absensi.index', $kelas)
             ->with('success', 'Absensi berhasil disimpan.');
     }
 
@@ -131,7 +141,16 @@ class GuruAbsensiController extends Controller
 
         $attendance->load(['kelas', 'mapel', 'guru', 'details.siswa']);
 
-        return view('guru.absensi.show', compact('attendance'));
+        $detailList = $attendance->details;
+
+        $stats = [
+            'hadir'  => $detailList->where('status', 'hadir')->count(),
+            'izin'   => $detailList->where('status', 'izin')->count(),
+            'sakit'  => $detailList->where('status', 'sakit')->count(),
+            'alpha'  => $detailList->where('status', 'alpha')->count(),
+        ];
+
+        return view('guru.absensi.show', compact('attendance', 'detailList', 'stats'));
     }
 
     /**
@@ -179,11 +198,16 @@ class GuruAbsensiController extends Controller
     /**
      * Display attendance recap per student for a class.
      */
-    public function recap(Kelas $kelas): \Illuminate\View\View
+    public function recap(Kelas $kelas, Request $request): \Illuminate\View\View
     {
         $this->authorizeGuruAccess($kelas);
 
         $siswa = $kelas->siswas()->orderBy('name')->get();
+
+        $mapels = Mapel::whereHas('guruMapel', function ($query) use ($kelas) {
+            $query->where('class_id', $kelas->id)
+                  ->where('guru_id', Auth::id());
+        })->orderBy('nama')->get();
 
         $recapData = $siswa->map(function ($s) use ($kelas) {
             $attendanceDetails = AttendanceDetail::whereHas('attendance', function ($query) use ($kelas) {
@@ -195,19 +219,19 @@ class GuruAbsensiController extends Controller
             $totalSessions = $attendanceDetails->count();
 
             return [
-                'siswa'          => $s,
-                'total_sessions' => $totalSessions,
-                'hadir'          => $attendanceDetails->where('status', 'hadir')->count(),
-                'izin'           => $attendanceDetails->where('status', 'izin')->count(),
-                'sakit'          => $attendanceDetails->where('status', 'sakit')->count(),
-                'alpha'          => $attendanceDetails->where('status', 'alpha')->count(),
-                'persentase'     => $totalSessions > 0
+                'name'        => $s->name,
+                'nis'         => $s->nis ?? '-',
+                'hadir'       => $attendanceDetails->where('status', 'hadir')->count(),
+                'izin'        => $attendanceDetails->where('status', 'izin')->count(),
+                'sakit'       => $attendanceDetails->where('status', 'sakit')->count(),
+                'alpha'       => $attendanceDetails->where('status', 'alpha')->count(),
+                'persentase'  => $totalSessions > 0
                     ? round(($attendanceDetails->where('status', 'hadir')->count() / $totalSessions) * 100, 1)
                     : 0,
             ];
         });
 
-        return view('guru.absensi.recap', compact('kelas', 'recapData'));
+        return view('guru.absensi.recap', compact('kelas', 'recapData', 'mapels'));
     }
 
     /**

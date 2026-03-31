@@ -31,7 +31,7 @@
                     </div>
                     <div>
                         <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Mata Pelajaran</p>
-                        <p class="text-sm font-semibold text-gray-900 mt-1">{{ $submission->tugas?->mapel?->nama_mapel }}</p>
+                        <p class="text-sm font-semibold text-gray-900 mt-1">{{ $submission->tugas?->mapel?->nama }}</p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Deadline</p>
@@ -61,10 +61,10 @@
 
                 <div class="space-y-4">
                     {{-- Submitted Content --}}
-                    @if($submission->content)
+                    @if($submission->konten)
                         <div class="bg-gray-50 rounded-xl p-4">
                             <p class="text-xs font-medium text-gray-500 mb-2">Jawaban / Catatan</p>
-                            <div class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{{ $submission->content }}</div>
+                            <div class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{{ $submission->konten }}</div>
                         </div>
                     @endif
 
@@ -72,7 +72,7 @@
                     @if($submission->file_path)
                         <div>
                             <p class="text-xs font-medium text-gray-500 mb-2">File Terlampir</p>
-                            <a href="{{ route('files.download', $submission) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors text-sm text-blue-700 font-medium">
+                            <a href="{{ route('files.download', $submission->file_path) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors text-sm text-blue-700 font-medium">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 Unduh File
                             </a>

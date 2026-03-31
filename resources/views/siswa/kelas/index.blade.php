@@ -103,7 +103,7 @@
                         </div>
                     @endif
                     <div>
-                        <input type="text" name="kode_unik" maxlength="6" placeholder="Masukkan kode kelas" required
+                        <input type="text" name="kode_unik" maxlength="8" placeholder="Masukkan kode kelas" required
                             class="w-full text-center text-2xl font-bold tracking-[0.5em] uppercase px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all placeholder:tracking-normal placeholder:text-base placeholder:font-normal placeholder:text-gray-400"
                             autofocus>
                     </div>

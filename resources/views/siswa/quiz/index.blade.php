@@ -6,6 +6,13 @@
 <div class="space-y-6">
     {{-- Header --}}
     <div>
+        <nav class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+            <a href="{{ route('siswa.kelas.index') }}" class="hover:text-blue-600">Kelas</a>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <a href="{{ route('siswa.kelas.show', $kelas) }}" class="hover:text-blue-600">{{ $kelas->nama_kelas }}</a>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <span class="text-gray-900 font-medium">Quiz</span>
+        </nav>
         <h1 class="text-2xl font-bold text-gray-900">Quiz</h1>
         <p class="text-sm text-gray-500 mt-1">Daftar quiz yang tersedia untuk kamu</p>
     </div>
@@ -34,8 +41,8 @@
     <div class="space-y-4">
         @forelse($quizzes as $quiz)
             @php
+                $attempt = $quiz->attempt;
                 $status = $quiz->status ?? 'belum_dibuka';
-                $attempt = $quiz->attempts?->where('siswa_id', auth()->id())->first();
                 $statusConfig = match($status) {
                     'belum_mulai' => ['icon' => 'clock', 'bg' => 'bg-blue-50', 'text' => 'text-blue-700', 'badge' => 'bg-blue-100 text-blue-800', 'label' => 'Belum Mulai'],
                     'tersedia' => ['icon' => 'play', 'bg' => 'bg-green-50', 'text' => 'text-green-700', 'badge' => 'bg-green-100 text-green-800', 'label' => 'Tersedia'],
@@ -60,14 +67,14 @@
                                     </span>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">{{ $quiz->mapel?->nama_mapel }}</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">{{ $quiz->mapel?->nama }}</span>
                                     <span class="flex items-center gap-1">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        {{ $quiz->durasi }} menit
+                                        {{ $quiz->durasi_menit }} menit
                                     </span>
                                     <span class="flex items-center gap-1">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        {{ $quiz->jumlah_soal }} soal
+                                        {{ $quiz->questions->count() }} soal
                                     </span>
                                 </div>
                                 {{-- Schedule --}}
@@ -83,13 +90,16 @@
 
                             {{-- Action --}}
                             <div class="flex items-center gap-3 flex-shrink-0">
-                                @if($status === 'tersedia' && (!$attempt || $attempt->can_retry ?? false))
-                                    <a href="{{ route('siswa.quiz.start', $quiz) }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow-sm">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        Mulai
-                                    </a>
+                                @if($status === 'tersedia' && (!$attempt || ($attempt->status === 'selesai')))
+                                    <form method="POST" action="{{ route('siswa.quiz.start', $quiz) }}">
+                                        @csrf
+                                        <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow-sm">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            Mulai
+                                        </button>
+                                    </form>
                                 @elseif($attempt && $attempt->skor !== null)
-                                    <a href="{{ route('siswa.quiz.result', [$quiz, $attempt]) }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium">
+                                    <a href="{{ route('siswa.quiz.result', $attempt) }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         Lihat Hasil
                                     </a>
@@ -98,11 +108,19 @@
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                         Terkunci
                                     </div>
-                                @elseif($attempt)
+                                @elseif($attempt && $attempt->status === 'dikerjakan')
                                     <div class="px-5 py-2.5 bg-yellow-50 text-yellow-700 rounded-lg text-sm font-medium inline-flex items-center gap-2">
                                         <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         Sedang Dikerjakan
                                     </div>
+                                @else
+                                    <form method="POST" action="{{ route('siswa.quiz.start', $quiz) }}">
+                                        @csrf
+                                        <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow-sm">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            Mulai
+                                        </button>
+                                    </form>
                                 @endif
                             </div>
                         </div>
@@ -117,7 +135,7 @@
         @endforelse
     </div>
 
-    @if(isset($quizzes) && $quizzes->hasPages())
+    @if($quizzes->hasPages())
         <div class="flex items-center justify-center">
             {{ $quizzes->withQueryString()->links() }}
         </div>

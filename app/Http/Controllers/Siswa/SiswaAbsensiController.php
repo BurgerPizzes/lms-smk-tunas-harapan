@@ -106,7 +106,13 @@ class SiswaAbsensiController extends Controller
                 : 0,
         ];
 
-        return view('siswa.absensi.by-class', compact('kelas', 'attendances', 'summary'));
+        // Build absensi list and mapel list for view
+        $absensiList = $attendances;
+        $mapelList = \App\Models\Mapel::whereHas('attendances', function ($query) use ($kelas) {
+            $query->where('class_id', $kelas->id);
+        })->orderBy('nama')->get();
+
+        return view('siswa.absensi.by-class', compact('kelas', 'attendances', 'summary', 'absensiList', 'mapelList'));
     }
 
     /**

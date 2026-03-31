@@ -117,7 +117,9 @@ class SiswaNilaiController extends Controller
         $totalNilai = $submissions->count();
         $rataRata = $classAverage;
 
-        return view('siswa.nilai.by-class', compact('kelas', 'submissions', 'mapelGrades', 'classAverage', 'mapelList', 'rataRata', 'lulusCount', 'totalNilai'));
+        $nilaiList = $submissions;
+
+        return view('siswa.nilai.by-class', compact('kelas', 'submissions', 'nilaiList', 'mapelGrades', 'classAverage', 'mapelList', 'rataRata', 'lulusCount', 'totalNilai'));
     }
 
     /**

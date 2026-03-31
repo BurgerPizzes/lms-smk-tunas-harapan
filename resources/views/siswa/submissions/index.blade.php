@@ -60,7 +60,7 @@
                                 <p class="text-sm text-gray-600">{{ $sub->tugas?->kelas?->nama_kelas }}</p>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">{{ $sub->tugas?->mapel?->nama_mapel }}</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">{{ $sub->tugas?->mapel?->nama }}</span>
                             </td>
                             <td class="px-6 py-4">
                                 <p class="text-sm text-gray-600">{{ $sub->submitted_at?->translatedFormat('d M Y, H:i') }}</p>

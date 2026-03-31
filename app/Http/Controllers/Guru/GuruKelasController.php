@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Guru;
 use App\Http\Controllers\Controller;
 use App\Models\GuruMapel;
 use App\Models\Kelas;
+use App\Models\Mapel;
+use App\Models\Quiz;
 use App\Models\Tugas;
 use App\Models\Materi;
 use App\Models\User;
@@ -44,10 +46,14 @@ class GuruKelasController extends Controller
      */
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
+        // View sends 'tahun_ajaran' but DB column is 'tahun_ajaran_id'
+        $tahunAjaranId = $request->input('tahun_ajaran_id') ?? $request->input('tahun_ajaran');
+
         $validated = $request->validate([
             'nama'        => ['required', 'string', 'max:255'],
             'jurusan_id'  => ['nullable', 'exists:jurusans,id'],
             'tingkat'     => ['required', 'string', 'max:10'],
+            'tahun_ajaran'  => ['nullable', 'exists:tahun_ajarans,id'],
             'tahun_ajaran_id' => ['nullable', 'exists:tahun_ajarans,id'],
             'deskripsi'   => ['nullable', 'string'],
         ]);
@@ -59,7 +65,7 @@ class GuruKelasController extends Controller
             'jurusan_id'   => $validated['jurusan_id'],
             'guru_id'      => $guru->id,
             'tingkat'      => $validated['tingkat'],
-            'tahun_ajaran_id' => $validated['tahun_ajaran_id'] ?? null,
+            'tahun_ajaran_id' => $tahunAjaranId ?? null,
             'deskripsi'    => $validated['deskripsi'],
             'kode_unik'    => strtoupper(Str::random(8)),
             'is_active'    => true,
@@ -139,7 +145,7 @@ class GuruKelasController extends Controller
             ->get();
 
         // Quiz list
-        $quizList = Quiz::where('kelas_id', $kelas->id)
+        $quizList = Quiz::where('class_id', $kelas->id)
             ->with('mapel')
             ->withCount('questions')
             ->latest()
@@ -147,7 +153,7 @@ class GuruKelasController extends Controller
             ->get();
 
         // Mapel filter options
-        $mapels = Mapel::whereHas('guruMapel', function ($query) use ($kelas) {
+        $mapels = \App\Models\Mapel::whereHas('guruMapel', function ($query) use ($kelas) {
             $query->where('kelas_id', $kelas->id);
         })->orderBy('nama')->get();
 

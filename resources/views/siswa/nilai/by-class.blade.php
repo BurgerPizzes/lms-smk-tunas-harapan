@@ -16,7 +16,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-xl font-bold text-gray-900">{{ $kelas->nama_kelas }}</h1>
-                <p class="text-sm text-gray-500 mt-1">{{ $kelas->jurusan?->nama }} • {{ $kelas->guru?->name }}</p>
+                <p class="text-sm text-gray-500 mt-1">{{ $kelas->jurusan?->nama }} • {{ $kelas->waliKelas?->name }}</p>
             </div>
             <div class="flex gap-3">
                 <div class="bg-green-50 rounded-xl px-4 py-2 text-center">
@@ -39,7 +39,7 @@
             </button>
             @foreach($mapelList as $mapel)
                 <button onclick="filterByMapel('{{ $mapel->id }}')" class="mapel-btn px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" data-mapel="{{ $mapel->id }}">
-                    {{ $mapel->nama_mapel }}
+                    {{ $mapel->nama }}
                 </button>
             @endforeach
         </div>
@@ -61,9 +61,9 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                    @forelse($nilaiList as $index => $nilai)
+                    @forelse($submissions as $index => $nilai)
                         @php
-                            $statusLulus = $nilai->nilai >= $nilai->tugas?->kkm ?? 75;
+                            $statusLulus = ($nilai->nilai ?? 0) >= ($nilai->tugas?->nilai_maks ? $nilai->tugas->nilai_maks * 0.75 : 75);
                         @endphp
                         <tr class="hover:bg-gray-50 transition-colors nilai-row" data-mapel="{{ $nilai->tugas?->mapel_id }}">
                             <td class="px-6 py-4 text-sm text-gray-500">{{ $index + 1 }}</td>
@@ -71,7 +71,7 @@
                                 <p class="text-sm font-medium text-gray-900">{{ $nilai->tugas?->judul }}</p>
                             </td>
                             <td class="px-6 py-4 hidden sm:table-cell">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">{{ $nilai->tugas?->mapel?->nama_mapel }}</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">{{ $nilai->tugas?->mapel?->nama }}</span>
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <span class="text-sm font-bold {{ $statusLulus ? 'text-green-600' : 'text-red-600' }}">{{ $nilai->nilai }}</span>

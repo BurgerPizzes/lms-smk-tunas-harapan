@@ -35,8 +35,15 @@ class SiswaQuizController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        // Annotate with attempt status
-        $quizzes->transform(function ($quiz) use ($siswa) {
+        // Annotate with attempt status and computed status
+        $stats = [
+            'total' => 0,
+            'tersedia' => 0,
+            'selesai' => 0,
+            'belum_dibuka' => 0,
+        ];
+
+        $quizzes->transform(function ($quiz) use ($siswa, &$stats) {
             $attempt = QuizAttempt::where('quiz_id', $quiz->id)
                 ->where('siswa_id', $siswa->id)
                 ->latest()
@@ -48,6 +55,26 @@ class SiswaQuizController extends Controller
             $quiz->is_upcoming = $quiz->mulai_at && $quiz->mulai_at > now();
             $quiz->is_ended = $quiz->selesai_at && $quiz->selesai_at < now();
 
+            // Determine status string for the view
+            if ($quiz->is_active) {
+                $quiz->status = 'tersedia';
+            } elseif ($quiz->is_upcoming) {
+                $quiz->status = 'belum_dibuka';
+            } elseif ($quiz->is_ended) {
+                $quiz->status = 'selesai';
+            } else {
+                $quiz->status = 'tersedia';
+            }
+
+            $stats['total']++;
+            if ($quiz->status === 'tersedia') {
+                $stats['tersedia']++;
+            } elseif ($quiz->status === 'selesai') {
+                $stats['selesai']++;
+            } elseif ($quiz->status === 'belum_dibuka') {
+                $stats['belum_dibuka']++;
+            }
+
             return $quiz;
         });
 
@@ -55,7 +82,7 @@ class SiswaQuizController extends Controller
             $query->where('class_id', $kelas->id)->where('is_published', true);
         })->orderBy('nama')->get();
 
-        return view('siswa.quiz.index', compact('kelas', 'quizzes', 'mapels'));
+        return view('siswa.quiz.index', compact('kelas', 'quizzes', 'mapels', 'stats'));
     }
 
     /**
@@ -85,11 +112,6 @@ class SiswaQuizController extends Controller
             // Resume existing attempt
             return $this->showQuizPage($quiz, $pendingAttempt);
         }
-
-        // Check max attempts
-        $totalAttempts = QuizAttempt::where('quiz_id', $quiz->id)
-            ->where('siswa_id', $siswa->id)
-            ->count();
 
         // Create new attempt
         DB::beginTransaction();
@@ -168,7 +190,6 @@ class SiswaQuizController extends Controller
 
         DB::beginTransaction();
         try {
-            // Auto-submit if time is up
             $attempt->update([
                 'status'        => 'selesai',
                 'waktu_selesai' => now(),
@@ -176,6 +197,13 @@ class SiswaQuizController extends Controller
 
             // Calculate score (only for non-essay questions)
             $this->calculateScore($attempt);
+
+            // Compute duration
+            if ($attempt->waktu_mulai && $attempt->waktu_selesai) {
+                $attempt->update([
+                    'durasi_detik' => $attempt->waktu_mulai->diffInSeconds($attempt->waktu_selesai),
+                ]);
+            }
 
             DB::commit();
         } catch (\Throwable $e) {
@@ -203,13 +231,59 @@ class SiswaQuizController extends Controller
             'quiz.mapel',
         ]);
 
-        // Load quiz answers
+        // Load quiz answers with questions
         $attempt->load('answers.question');
 
-        // Only show pembahasan if enabled
-        $showPembahasan = $attempt->quiz->show_result;
+        $quiz = $attempt->quiz;
 
-        return view('siswa.quiz.result', compact('attempt', 'showPembahasan'));
+        // Only show pembahasan if enabled
+        $showPembahasan = $quiz->show_result;
+
+        // Build stats from attempt
+        $stats = [
+            'benar'  => $attempt->total_benar ?? 0,
+            'salah'  => $attempt->total_salah ?? 0,
+            'total'  => $attempt->total_soal ?? 0,
+        ];
+
+        // Build review questions if pembahasan is enabled
+        $reviewQuestions = [];
+        if ($showPembahasan) {
+            $questions = $quiz->questions()->orderBy('urutan')->get();
+            $answers = $attempt->answers->keyBy('quiz_question_id');
+
+            foreach ($questions as $question) {
+                $answer = $answers->get($question->id);
+                $userAnswer = $answer ? $answer->jawaban : null;
+                $correctAnswer = $question->jawaban_benar;
+
+                $isCorrect = false;
+                if ($userAnswer !== null && $correctAnswer !== null) {
+                    if ($question->tipe === 'essay') {
+                        $isCorrect = false; // Essay graded manually
+                    } else {
+                        $isCorrect = strtoupper(trim($userAnswer)) === strtoupper(trim($correctAnswer));
+                    }
+                }
+
+                $reviewQuestions[] = [
+                    'pertanyaan'     => $question->pertanyaan,
+                    'tipe'           => $question->tipe,
+                    'pilihan_a'      => $question->pilihan_a,
+                    'pilihan_b'      => $question->pilihan_b,
+                    'pilihan_c'      => $question->pilihan_c,
+                    'pilihan_d'      => $question->pilihan_d,
+                    'pilihan_e'      => $question->pilihan_e,
+                    'user_answer'    => $userAnswer,
+                    'correct_answer' => $correctAnswer,
+                    'is_correct'     => $isCorrect,
+                    'poin'           => $question->poin,
+                    'pembahasan'     => $question->pembahasan,
+                ];
+            }
+        }
+
+        return view('siswa.quiz.result', compact('attempt', 'quiz', 'stats', 'showPembahasan', 'reviewQuestions'));
     }
 
     /**
@@ -262,16 +336,19 @@ class SiswaQuizController extends Controller
         $totalPoinBenar = 0;
 
         foreach ($questions as $question) {
-            $totalPoin += $question->poin;
+            $totalPoin += $question->poin ?? 0;
             $answer = $answers->get($question->id);
 
             if ($answer) {
                 $isCorrect = false;
 
                 switch ($question->tipe) {
+                    case 'pilgan':
                     case 'pilihan_ganda':
+                    case 'pg':
                         $isCorrect = strtoupper(trim($answer->jawaban)) === strtoupper(trim($question->jawaban_benar));
                         break;
+                    case 'benar_salah':
                     case 'true_false':
                         $isCorrect = strtolower(trim($answer->jawaban)) === strtolower(trim($question->jawaban_benar));
                         break;
@@ -282,7 +359,7 @@ class SiswaQuizController extends Controller
 
                 if ($isCorrect) {
                     $totalBenar++;
-                    $totalPoinBenar += $question->poin;
+                    $totalPoinBenar += $question->poin ?? 0;
                     $answer->update(['benar' => true]);
                 } else {
                     $answer->update(['benar' => false]);

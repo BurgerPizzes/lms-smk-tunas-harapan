@@ -16,7 +16,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-xl font-bold text-gray-900">{{ $kelas->nama_kelas }}</h1>
-                <p class="text-sm text-gray-500 mt-1">{{ $kelas->jurusan?->nama }} • {{ $kelas->guru?->name }}</p>
+                <p class="text-sm text-gray-500 mt-1">{{ $kelas->jurusan?->nama }} • {{ $kelas->waliKelas?->name }}</p>
             </div>
             <div class="flex gap-3">
                 @php
@@ -68,7 +68,7 @@
         <div class="flex flex-wrap gap-2">
             <button onclick="filterAbsensi('')" class="absensi-btn px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white" data-mapel="">Semua</button>
             @foreach($mapelList as $mapel)
-                <button onclick="filterAbsensi('{{ $mapel->id }}')" class="absensi-btn px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" data-mapel="{{ $mapel->id }}">{{ $mapel->nama_mapel }}</button>
+                <button onclick="filterAbsensi('{{ $mapel->id }}')" class="absensi-btn px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" data-mapel="{{ $mapel->id }}">{{ $mapel->nama }}</button>
             @endforeach
         </div>
     </div>
@@ -88,14 +88,15 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                    @forelse($absensiList as $index => $absen)
+                    @forelse($attendances as $index => $absen)
                         @php
-                            $statusBadge = match($absen->status) {
+                            $studentStatus = $absen->student_status ?? '-';
+                            $statusBadge = match($studentStatus) {
                                 'hadir' => ['bg-green-100 text-green-800', 'Hadir'],
                                 'izin' => ['bg-blue-100 text-blue-800', 'Izin'],
                                 'sakit' => ['bg-yellow-100 text-yellow-800', 'Sakit'],
                                 'alpha' => ['bg-red-100 text-red-800', 'Alpha'],
-                                default => ['bg-gray-100 text-gray-800', $absen->status ?? '-'],
+                                default => ['bg-gray-100 text-gray-800', $studentStatus],
                             };
                         @endphp
                         <tr class="hover:bg-gray-50 transition-colors absensi-row" data-mapel="{{ $absen->mapel_id }}">
@@ -105,7 +106,7 @@
                                 <p class="text-xs text-gray-400">{{ $absen->tanggal?->translatedFormat('l') }}</p>
                             </td>
                             <td class="px-6 py-4 hidden sm:table-cell">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">{{ $absen->mapel?->nama_mapel }}</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">{{ $absen->mapel?->nama }}</span>
                             </td>
                             <td class="px-6 py-4 text-center hidden sm:table-cell">
                                 <span class="text-sm text-gray-600">Ke-{{ $absen->pertemuan_ke ?? '-' }}</span>
@@ -116,7 +117,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 hidden md:table-cell">
-                                <p class="text-sm text-gray-500">{{ $absen->keterangan ?? '-' }}</p>
+                                <p class="text-sm text-gray-500">{{ $absen->student_keterangan ?? '-' }}</p>
                             </td>
                         </tr>
                     @empty
@@ -130,9 +131,9 @@
                 </tbody>
             </table>
         </div>
-        @if(isset($absensiList) && $absensiList->hasPages())
+        @if($attendances->hasPages())
             <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-center">
-                {{ $absensiList->withQueryString()->links() }}
+                {{ $attendances->withQueryString()->links() }}
             </div>
         @endif
     </div>

@@ -30,8 +30,8 @@ class GuruDashboardController extends Controller
         $kelasIds = $assignedClasses->pluck('class_id')->unique()->filter()->toArray();
         $mapelIds = $assignedClasses->pluck('mapel_id')->unique()->filter()->toArray();
 
-        // Upcoming deadlines with eager-loaded kelas and mapel
-        $upcomingDeadlines = Tugas::with(['kelas', 'mapel'])
+        // Upcoming deadlines with eager-loaded kelas (with siswas) and mapel
+        $upcomingDeadlines = Tugas::with(['kelas.siswas', 'mapel'])
             ->whereIn('class_id', $kelasIds)
             ->where('deadline', '>=', now())
             ->orderBy('deadline')

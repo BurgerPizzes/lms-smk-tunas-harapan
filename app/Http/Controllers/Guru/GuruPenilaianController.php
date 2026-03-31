@@ -30,7 +30,16 @@ class GuruPenilaianController extends Controller
 
         $statistics = $this->calculateStatistics($tugas);
 
-        return view('guru.penilaian.index', compact('tugas', 'submissions', 'statistics'));
+        // Build stats array for the view
+        $stats = [
+            'average'     => $statistics['average'],
+            'highest'     => $statistics['highest'],
+            'lowest'      => $statistics['lowest'],
+            'graded'      => $statistics['count'],
+            'pass_rate'   => $statistics['count'] > 0 ? round(($statistics['passed'] / $statistics['count']) * 100, 1) : 0,
+        ];
+
+        return view('guru.penilaian.index', compact('tugas', 'submissions', 'stats'));
     }
 
     /**
@@ -147,47 +156,65 @@ class GuruPenilaianController extends Controller
     /**
      * Show grade recap for all tugas in a class.
      */
-    public function recapNilai(Kelas $kelas): \Illuminate\View\View
+    public function recapNilai(Kelas $kelas, Request $request): \Illuminate\View\View
     {
         $this->authorizeGuruAccess($kelas);
 
         $kelas->load(['siswas', 'guruMapel.mapel']);
 
-        $mapels = $kelas->guruMapel->pluck('mapel');
+        $allMapels = $kelas->guruMapel->pluck('mapel');
 
-        $recapData = [];
-        foreach ($mapels as $mapel) {
-            $tugasList = Tugas::where('class_id', $kelas->id)
+        // Filter by mapel if requested
+        if ($request->filled('mapel')) {
+            $allMapels = $allMapels->where('id', $request->input('mapel'));
+        }
+
+        $kkm = 75;
+
+        // Build data structures expected by the view
+        $tugasList = collect();
+        $siswaList = collect();
+
+        foreach ($allMapels as $mapel) {
+            $mapelTugas = Tugas::where('class_id', $kelas->id)
                 ->where('mapel_id', $mapel->id)
                 ->orderBy('created_at')
                 ->get();
-
-            $siswaData = $kelas->siswas->map(function ($siswa) use ($tugasList) {
-                $submissions = Submission::whereIn('tugas_id', $tugasList->pluck('id'))
-                    ->where('siswa_id', $siswa->id)
-                    ->get();
-
-                $graded = $submissions->whereNotNull('nilai');
-                $average = $graded->isNotEmpty() ? round($graded->avg('nilai'), 1) : null;
-
-                return [
-                    'siswa'       => $siswa,
-                    'submitted'   => $submissions->count(),
-                    'graded'      => $graded->count(),
-                    'average'     => $average,
-                    'highest'     => $graded->max('nilai'),
-                    'lowest'      => $graded->min('nilai'),
-                ];
-            });
-
-            $recapData[] = [
-                'mapel'       => $mapel,
-                'tugas_count' => $tugasList->count(),
-                'siswa_data'  => $siswaData,
-            ];
+            $tugasList = $tugasList->merge($mapelTugas);
         }
 
-        return view('guru.penilaian.recap', compact('kelas', 'recapData'));
+        $siswaList = $kelas->siswas->map(function ($siswa) use ($tugasList) {
+            $nilaiMap = [];
+            $totalNilai = 0;
+            $gradedCount = 0;
+
+            foreach ($tugasList as $tugas) {
+                $submission = Submission::where('tugas_id', $tugas->id)
+                    ->where('siswa_id', $siswa->id)
+                    ->first();
+
+                $nilaiMap[$tugas->id] = $submission?->nilai ?? null;
+                if ($submission && $submission->nilai !== null) {
+                    $totalNilai += $submission->nilai;
+                    $gradedCount++;
+                }
+            }
+
+            $rataRata = $gradedCount > 0 ? round($totalNilai / $gradedCount, 1) : null;
+
+            return (object)[
+                'id' => $siswa->id,
+                'name' => $siswa->name,
+                'nis' => $siswa->nis ?? '-',
+                'nilai_map' => $nilaiMap,
+                'rata_rata' => $rataRata,
+            ];
+        });
+
+        // Provide mapels for filter dropdown
+        $mapels = $kelas->guruMapel->pluck('mapel');
+
+        return view('guru.penilaian.recap', compact('kelas', 'tugasList', 'siswaList', 'kkm', 'mapels'));
     }
 
     /**

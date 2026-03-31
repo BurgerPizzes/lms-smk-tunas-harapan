@@ -160,7 +160,7 @@ class SiswaTugasController extends Controller
             ->latest('submitted_at')
             ->paginate(15);
 
-        return view('siswa.tugas.submissions', compact('submissions'));
+        return view('siswa.submissions.index', compact('submissions'));
     }
 
     /**
@@ -176,7 +176,7 @@ class SiswaTugasController extends Controller
 
         $submission->load(['tugas.kelas', 'tugas.mapel']);
 
-        return view('siswa.tugas.submission-detail', compact('submission'));
+        return view('siswa.submissions.show', compact('submission'));
     }
 
     /**

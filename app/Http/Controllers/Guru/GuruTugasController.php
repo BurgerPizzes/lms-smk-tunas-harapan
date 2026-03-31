@@ -93,7 +93,7 @@ class GuruTugasController extends Controller
         Tugas::create($validated);
 
         return redirect()
-            ->route('guru.tugas.index', $kelas)
+            ->route('guru.kelas.tugas.index', $kelas)
             ->with('success', 'Tugas berhasil dibuat.');
     }
 
@@ -113,14 +113,23 @@ class GuruTugasController extends Controller
             },
         ]);
 
+        $totalSiswa = $tugas->kelas ? $tugas->kelas->siswas()->count() : 0;
         $submittedCount = $tugas->submissions->count();
         $gradedCount = $tugas->submissions->whereNotNull('nilai')->count();
         $ungradedCount = $submittedCount - $gradedCount;
-
+        $lateCount = $tugas->submissions->filter(fn ($s) => $s->isLate())->count();
+        $onTimeCount = $submittedCount - $lateCount;
         $averageScore = $tugas->submissions->whereNotNull('nilai')->avg('nilai');
 
+        $stats = [
+            'submitted' => $onTimeCount,
+            'late' => $lateCount,
+            'not_submitted' => $totalSiswa - $submittedCount,
+            'total' => $totalSiswa,
+        ];
+
         return view('guru.tugas.show', compact(
-            'tugas', 'submittedCount', 'gradedCount', 'ungradedCount', 'averageScore'
+            'tugas', 'submittedCount', 'gradedCount', 'ungradedCount', 'averageScore', 'stats'
         ));
     }
 
@@ -136,7 +145,12 @@ class GuruTugasController extends Controller
                   ->where('guru_id', Auth::id());
         })->orderBy('nama')->get();
 
-        return view('guru.tugas.edit', compact('tugas', 'mapels'));
+        // Provide kelasList for view dropdown
+        $kelasList = Kelas::whereHas('guruMapel', function ($query) {
+            $query->where('guru_id', Auth::id());
+        })->orderBy('nama')->get();
+
+        return view('guru.tugas.edit', compact('tugas', 'mapels', 'kelasList'));
     }
 
     /**
@@ -198,7 +212,7 @@ class GuruTugasController extends Controller
         $tugas->delete();
 
         return redirect()
-            ->route('guru.tugas.index', $tugas->kelas)
+            ->route('guru.kelas.tugas.index', $tugas->kelas)
             ->with('success', 'Tugas berhasil dihapus.');
     }
 

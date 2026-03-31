@@ -92,7 +92,7 @@ class GuruMateriController extends Controller
         Materi::create($validated);
 
         return redirect()
-            ->route('guru.materi.index', $kelas)
+            ->route('guru.kelas.materi.index', $kelas)
             ->with('success', 'Materi berhasil ditambahkan.');
     }
 
@@ -122,7 +122,12 @@ class GuruMateriController extends Controller
                   ->where('guru_id', Auth::id());
         })->orderBy('nama')->get();
 
-        return view('guru.materi.edit', compact('materi', 'mapels'));
+        // Provide kelasList for view dropdown
+        $kelasList = Kelas::whereHas('guruMapel', function ($query) {
+            $query->where('guru_id', Auth::id());
+        })->orderBy('nama')->get();
+
+        return view('guru.materi.edit', compact('materi', 'mapels', 'kelasList'));
     }
 
     /**
@@ -178,7 +183,7 @@ class GuruMateriController extends Controller
         $materi->delete();
 
         return redirect()
-            ->route('guru.materi.index', $materi->kelas)
+            ->route('guru.kelas.materi.index', $materi->kelas)
             ->with('success', 'Materi berhasil dihapus.');
     }
 

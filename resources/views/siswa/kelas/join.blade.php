@@ -57,13 +57,13 @@
                         type="text"
                         id="kode_unik"
                         name="kode_unik"
-                        maxlength="6"
-                        placeholder="ABC123"
+                        maxlength="8"
+                        placeholder="ABCD1234"
                         required
                         autofocus
                         class="w-full text-center text-3xl font-bold tracking-[0.4em] uppercase px-4 py-5 border-2 {{ $errors->has('kode_unik') ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500/20' }} rounded-xl focus:ring-2 outline-none transition-all placeholder:tracking-normal placeholder:text-lg placeholder:font-normal placeholder:text-gray-300 placeholder:uppercase"
                     >
-                    <p class="text-xs text-gray-400 text-center mt-3">6 karakter huruf dan angka</p>
+                    <p class="text-xs text-gray-400 text-center mt-3">8 karakter huruf dan angka</p>
                 </div>
 
                 {{-- Info --}}

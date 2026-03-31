@@ -21,7 +21,7 @@
                 {{-- Timer --}}
                 <div class="flex items-center gap-2 px-4 py-2 rounded-lg" id="timerContainer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span id="timerDisplay" class="text-xl font-bold font-mono text-gray-900">{{ $timeRemaining ?? $quiz->durasi * 60 }}</span>
+                    <span id="timerDisplay" class="text-xl font-bold font-mono text-gray-900">{{ $timeRemaining ?? ($quiz->durasi_menit * 60) }}</span>
                 </div>
             </div>
         </div>
@@ -52,21 +52,21 @@
                                     Soal {{ $index + 1 }}
                                     @if($question->tipe === 'essay')
                                         <span class="ml-1">• Essay</span>
-                                    @elseif($question->tipe === 'pg')
+                                    @elseif($question->tipe === 'pilgan')
                                         <span class="ml-1">• Pilihan Ganda</span>
-                                    @elseif($question->tipe === 'pgk')
-                                        <span class="ml-1">• PG Kompleks</span>
+                                    @elseif($question->tipe === 'benar_salah')
+                                        <span class="ml-1">• Benar/Salah</span>
                                     @endif
                                 </span>
                                 <h2 class="text-lg font-semibold text-gray-900 leading-relaxed">{!! $question->pertanyaan !!}</h2>
                             </div>
 
                             {{-- Pilihan Ganda Options --}}
-                            @if($question->tipe === 'pg')
+                            @if($question->tipe === 'pilgan')
                                 <div class="space-y-3">
                                     @foreach(['A','B','C','D','E'] as $letter)
                                         @php
-                                            $optionKey = 'opsi_' . strtolower($letter);
+                                            $optionKey = 'pilihan_' . strtolower($letter);
                                         @endphp
                                         @if($question->$optionKey)
                                             <label class="flex items-start gap-3 p-4 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-blue-300 hover:bg-blue-50/50 transition-all option-label" data-letter="{{ $letter }}">
@@ -79,21 +79,18 @@
                                 </div>
                             @endif
 
-                            {{-- PG Kompleks --}}
-                            @if($question->tipe === 'pgk')
+                            {{-- Benar/Salah --}}
+                            @if($question->tipe === 'benar_salah')
                                 <div class="space-y-3">
-                                    <p class="text-xs text-gray-500 italic mb-2">Pilih semua jawaban yang benar (boleh lebih dari satu)</p>
-                                    @foreach(['A','B','C','D','E'] as $letter)
+                                    @foreach(['Benar','Salah'] as $optionLabel)
                                         @php
-                                            $optionKey = 'opsi_' . strtolower($letter);
+                                            $optionValue = strtolower($optionLabel);
                                         @endphp
-                                        @if($question->$optionKey)
-                                            <label class="flex items-start gap-3 p-4 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-blue-300 hover:bg-blue-50/50 transition-all option-label" data-letter="{{ $letter }}">
-                                                <input type="checkbox" name="jawaban[{{ $question->id }}][]" value="{{ $letter }}" class="mt-1 w-5 h-5 text-blue-600 focus:ring-blue-500 rounded flex-shrink-0 quiz-checkbox" data-qid="{{ $question->id }}">
-                                                <span class="flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 text-gray-600 text-sm font-bold flex-shrink-0">{{ $letter }}</span>
-                                                <span class="text-sm text-gray-700 leading-relaxed pt-0.5">{!! $question->$optionKey !!}</span>
-                                            </label>
-                                        @endif
+                                        <label class="flex items-start gap-3 p-4 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-blue-300 hover:bg-blue-50/50 transition-all option-label" data-letter="{{ $optionLabel }}">
+                                            <input type="radio" name="jawaban[{{ $question->id }}]" value="{{ $optionValue }}" class="mt-1 w-5 h-5 text-blue-600 focus:ring-blue-500 flex-shrink-0 quiz-radio" data-qid="{{ $question->id }}">
+                                            <span class="flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 text-gray-600 text-sm font-bold flex-shrink-0">{{ substr($optionLabel, 0, 1) }}</span>
+                                            <span class="text-sm text-gray-700 leading-relaxed pt-0.5">{{ $optionLabel }}</span>
+                                        </label>
                                     @endforeach
                                 </div>
                             @endif
@@ -115,9 +112,9 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                         Sebelumnya
                     </button>
-                    <button onclick="confirmSubmit()" class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold shadow-sm">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                        {{ $questions->count() > 1 ? 'Selanjutnya' : 'Kumpulkan' }}
+                    <button onclick="nextQuestion()" id="btnNext" class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold shadow-sm">
+                        Selanjutnya
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </button>
                 </div>
             </div>
@@ -149,75 +146,23 @@
                     </div>
                 </div>
                 {{-- Finish Button --}}
-                <button onclick="confirmSubmit()" class="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Selesai & Kumpulkan
-                </button>
+                <form method="POST" action="{{ route('siswa.quiz.finish', $attempt) }}" id="finishForm">
+                    @csrf
+                    <button type="submit" onclick="return confirm('Yakin ingin mengumpulkan quiz?')" class="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Selesai & Kumpulkan
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 </div>
-
-{{-- Confirm Submit Modal --}}
-<div id="submitModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
-    <div class="flex min-h-full items-center justify-center p-4">
-        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeSubmitModal()"></div>
-        <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
-            <div class="text-center">
-                <div class="w-16 h-16 bg-yellow-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900">Kumpulkan Quiz?</h3>
-                <p class="text-sm text-gray-500 mt-2">
-                    Pastikan semua jawaban sudah benar. Quiz yang sudah dikumpulkan tidak bisa diubah.
-                </p>
-                <div class="bg-gray-50 rounded-xl p-4 mt-4">
-                    <p class="text-sm text-gray-700">
-                        <span id="answeredInfo" class="font-bold text-gray-900">0</span> dari <span class="font-bold">{{ $questions->count() }}</span> soal sudah dijawab
-                    </p>
-                    @if($questions->count() > 0)
-                        <p id="unansweredInfo" class="text-xs text-red-600 mt-1 hidden">Masih ada soal yang belum dijawab!</p>
-                    @endif
-                </div>
-            </div>
-            <div class="mt-6 flex gap-3">
-                <button onclick="closeSubmitModal()" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium text-sm">
-                    Kembali
-                </button>
-                <button onclick="submitQuiz()" class="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium text-sm">
-                    Ya, Kumpulkan
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Warning on Leave --}}
-<div id="leaveModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
-    <div class="flex min-h-full items-center justify-center p-4">
-        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm"></div>
-        <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
-            <svg class="w-16 h-16 text-red-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-            <h3 class="text-xl font-bold text-gray-900 mt-4">Peringatan!</h3>
-            <p class="text-sm text-gray-500 mt-2">Meninggalkan halaman ini akan menghentikan quiz dan mengirim jawaban secara otomatis.</p>
-            <button onclick="document.getElementById('leaveModal').classList.add('hidden')" class="mt-6 px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium">
-                Mengerti
-            </button>
-        </div>
-    </div>
-</div>
-@endsection
 
 @push('styles')
 <style>
-    [x-cloak] { display: none !important; }
     .option-label:has(input:checked) {
         border-color: #2563EB;
         background-color: #EFF6FF;
-    }
-    .option-label:has(input:checked) span:first-of-type {
-        background-color: #2563EB;
-        color: white;
     }
 </style>
 @endpush
@@ -225,26 +170,25 @@
 @push('scripts')
 <script>
     const totalQuestions = {{ $questions->count() }};
-    const durationSeconds = {{ $timeRemaining ?? ($quiz->durasi * 60) }};
+    const durationSeconds = {{ $timeRemaining ?? ($quiz->durasi_menit * 60) }};
     let currentQuestion = 0;
     let timeLeft = durationSeconds;
     let timerInterval;
     let answered = new Set();
 
-    {{-- Initialize --}}
     document.addEventListener('DOMContentLoaded', () => {
         startTimer();
         updateNav();
     });
 
-    {{-- Timer --}}
     function startTimer() {
         timerInterval = setInterval(() => {
             timeLeft--;
             updateTimerDisplay();
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                submitQuiz();
+                // Auto-submit
+                document.getElementById('finishForm').submit();
             }
         }, 1000);
     }
@@ -268,10 +212,12 @@
         }
     }
 
-    {{-- Question Navigation --}}
     function goToQuestion(index) {
         if (index < 0 || index >= totalQuestions) return;
         
+        // Save current answer before navigating
+        saveCurrentAnswer();
+
         document.querySelectorAll('.question-slide').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.question-slide')[index].classList.remove('hidden');
         
@@ -280,12 +226,46 @@
     }
 
     function prevQuestion() {
+        saveCurrentAnswer();
         if (currentQuestion > 0) goToQuestion(currentQuestion - 1);
     }
 
     function nextQuestion() {
+        saveCurrentAnswer();
         if (currentQuestion < totalQuestions - 1) goToQuestion(currentQuestion + 1);
-        else confirmSubmit();
+    }
+
+    function saveCurrentAnswer() {
+        const currentSlide = document.querySelectorAll('.question-slide')[currentQuestion];
+        if (!currentSlide) return;
+
+        const questionId = currentSlide.querySelector('.quiz-radio, .quiz-checkbox, .quiz-essay')?.dataset.qid;
+        if (!questionId) return;
+
+        const radio = currentSlide.querySelector('input[type="radio"]:checked');
+        const essay = currentSlide.querySelector('textarea.quiz-essay');
+
+        let jawaban = null;
+        if (radio) {
+            jawaban = radio.value;
+        } else if (essay && essay.value.trim()) {
+            jawaban = essay.value.trim();
+        }
+
+        if (jawaban !== null) {
+            fetch('{{ route('siswa.quiz.submit-answer') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({
+                    attempt_id: {{ $attempt->id }},
+                    question_id: questionId,
+                    jawaban: jawaban,
+                }),
+            }).catch(() => {});
+        }
     }
 
     function updateNav() {
@@ -309,26 +289,15 @@
         document.getElementById('answeredCount').textContent = answered.size + ' dijawab';
     }
 
-    {{-- Track Answered --}}
     document.addEventListener('change', (e) => {
-        if (e.target.classList.contains('quiz-radio') || e.target.classList.contains('quiz-checkbox') || e.target.classList.contains('quiz-essay')) {
+        if (e.target.classList.contains('quiz-radio') || e.target.classList.contains('quiz-checkbox')) {
             const slide = e.target.closest('.question-slide');
             const qIndex = parseInt(slide.dataset.question);
-            if (e.target.type === 'checkbox') {
-                const checkboxes = slide.querySelectorAll('input[type="checkbox"]:checked');
-                if (checkboxes.length > 0) answered.add(qIndex);
-                else answered.delete(qIndex);
-            } else if (e.target.type === 'text' || e.target.tagName === 'TEXTAREA') {
-                if (e.target.value.trim()) answered.add(qIndex);
-                else answered.delete(qIndex);
-            } else {
-                answered.add(qIndex);
-            }
+            answered.add(qIndex);
             updateNav();
         }
     });
 
-    {{-- Also track essay input --}}
     document.addEventListener('input', (e) => {
         if (e.target.classList.contains('quiz-essay')) {
             const slide = e.target.closest('.question-slide');
@@ -339,74 +308,6 @@
         }
     });
 
-    {{-- Submit --}}
-    function confirmSubmit() {
-        document.getElementById('answeredInfo').textContent = answered.size;
-        const unanswered = totalQuestions - answered.size;
-        const unansweredInfo = document.getElementById('unansweredInfo');
-        if (unanswered > 0) {
-            unansweredInfo.textContent = `Masih ada ${unanswered} soal yang belum dijawab!`;
-            unansweredInfo.classList.remove('hidden');
-        } else {
-            unansweredInfo.classList.add('hidden');
-        }
-        document.getElementById('submitModal').classList.remove('hidden');
-    }
-
-    function closeSubmitModal() {
-        document.getElementById('submitModal').classList.add('hidden');
-    }
-
-    function submitQuiz() {
-        clearInterval(timerInterval);
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '{{ route('siswa.quiz.submit-answer', $quiz) }}';
-        
-        const csrf = document.querySelector('meta[name="csrf-token"]');
-        if (csrf) {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = '_token';
-            input.value = csrf.content;
-            form.appendChild(input);
-        }
-
-        const timeInput = document.createElement('input');
-        timeInput.type = 'hidden';
-        timeInput.name = 'time_spent';
-        timeInput.value = durationSeconds - timeLeft;
-        form.appendChild(timeInput);
-
-        document.querySelectorAll('.question-slide').forEach(slide => {
-            slide.querySelectorAll('input[type="radio"]:checked').forEach(input => {
-                const hidden = document.createElement('input');
-                hidden.type = 'hidden';
-                hidden.name = `jawaban[${input.name.match(/\[(\d+)\]/)[1]}]`;
-                hidden.value = input.value;
-                form.appendChild(hidden);
-            });
-            slide.querySelectorAll('input[type="checkbox"]:checked').forEach(input => {
-                const hidden = document.createElement('input');
-                hidden.type = 'hidden';
-                hidden.name = `jawaban[${input.name.match(/\[(\d+)\]/)[1]}][]`;
-                hidden.value = input.value;
-                form.appendChild(hidden);
-            });
-            slide.querySelectorAll('textarea.quiz-essay').forEach(textarea => {
-                const hidden = document.createElement('input');
-                hidden.type = 'hidden';
-                hidden.name = `jawaban[${textarea.name.match(/\[(\d+)\]/)[1]}]`;
-                hidden.value = textarea.value;
-                form.appendChild(hidden);
-            });
-        });
-
-        document.body.appendChild(form);
-        form.submit();
-    }
-
-    {{-- Fullscreen --}}
     function toggleFullscreen() {
         if (!document.fullscreenElement) {
             document.documentElement.requestFullscreen().catch(() => {});
@@ -415,10 +316,10 @@
         }
     }
 
-    {{-- Warn on leave --}}
     window.addEventListener('beforeunload', (e) => {
         e.preventDefault();
         e.returnValue = '';
     });
 </script>
 @endpush
+@endsection
