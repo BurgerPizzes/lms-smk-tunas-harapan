@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\View;
+use App\Models\Notification;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,6 +26,27 @@ class AppServiceProvider extends ServiceProvider
     {
         // Set default string length for MySQL (fixes index length issues)
         Schema::defaultStringLength(191);
+
+        // Share notification data with the notifications dropdown partial
+        View::composer('partials.notifications-dropdown', function ($view) {
+            if (auth()->check()) {
+                $notifications = Notification::byUser(auth()->id())
+                    ->orderBy('created_at', 'desc')
+                    ->take(5)
+                    ->get();
+
+                $unreadCount = Notification::byUser(auth()->id())
+                    ->unread()
+                    ->count();
+
+                $view->with(compact('notifications', 'unreadCount'));
+            } else {
+                $view->with([
+                    'notifications' => collect(),
+                    'unreadCount' => 0,
+                ]);
+            }
+        });
 
 
         // Custom validation: Indonesian phone number
