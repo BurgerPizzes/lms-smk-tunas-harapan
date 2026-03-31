@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Blade;
 
@@ -26,8 +25,6 @@ class AppServiceProvider extends ServiceProvider
         // Set default string length for MySQL (fixes index length issues)
         Schema::defaultStringLength(191);
 
-        // Enable strict mode for Eloquent models
-        Model::shouldBeStrict();
 
         // Custom validation: Indonesian phone number
         Validator::extend('phone_id', function ($attribute, $value, $parameters, $validator) {
