@@ -39,11 +39,20 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = ['avatar'];
+
     protected $casts = [
         'email_verified_at' => 'datetime',
         'last_login_at' => 'datetime',
         'is_active' => 'boolean',
     ];
+
+    // ─── Accessors ──────────────────────────────────────────────
+
+    public function getAvatarAttribute(): ?string
+    {
+        return $this->foto;
+    }
 
     // ─── Relationships ────────────────────────────────────────────
 
